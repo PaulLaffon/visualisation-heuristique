@@ -7,8 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <DockPanel>
+        <ComboBox DockPanel.Dock="Top" Width="300" x:Name="optionCombobox" SelectionChanged="optionCombobox_SelectionChanged"/>
         <ProgressBar DockPanel.Dock="Top" Width="300" Height="20" IsIndeterminate="True"/>
-        <DockPanel x:Name="grapheContainer" Loaded="grapheContainer_Loaded"/>
+        <DockPanel x:Name="grapheContainer" Loaded="grapheContainer_Loaded" />
 
     </DockPanel>
 </Window>
