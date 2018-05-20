@@ -7,84 +7,21 @@ namespace VisualisationHeuristique
 {
     class JsonGraphProvider
     {
-        /*
-        public static Graph GraphFromFile(string filename)
+        public static List<string> getJsonFileFromFolder(string folder_name)
         {
-            // Object graph utilisé par MSAGL
-            Graph g = new Graph();
-            
-            // On récupère le graphe en désérializant le JSON
-            JsonGraph jsonGraph = JsonConvert.DeserializeObject<JsonGraph>(File.ReadAllText(filename));
+            List<string> file_names = new List<string>();
 
-            // Dictionnaire des noeuds qui ont été exploré (ayant une valeure d'heuristique)
-            SortedDictionary<string, Node> nodes = new SortedDictionary<string, Node>();
+            DirectoryInfo d = new DirectoryInfo(folder_name);
+            FileInfo[] files = d.GetFiles("*.json");
 
-            // On rempli le dictionnaire des noeuds qui ont été exploré
-            foreach(Node n in jsonGraph.NodeSelection)
+            foreach (FileInfo file in files)
             {
-                nodes.Add(n.Id, new Node() { Id=n.Id, HeuristicValue = n.HeuristicValue, Order = n.Order});
+                file_names.Add(file.Name);
             }
 
-
-            // Valeur minimum et maximum de l'heuristique dans le graphe
-            double min_value = jsonGraph.NodeSelection.Min(n => n.HeuristicValue);
-            double max_value = jsonGraph.NodeSelection.Max(n => n.HeuristicValue);
-
-            ColorMap cmap = new ColorMap(Color.Yellow, Color.Red, max_value, min_value);
-
-
-            foreach (Edge e in jsonGraph.ExecutionNodes)
-            {
-                Microsoft.Msagl.Drawing.Edge edge = g.AddEdge(e.Source, e.Dest);
-
-                Microsoft.Msagl.Drawing.Node source = edge.SourceNode;
-                Microsoft.Msagl.Drawing.Node dest = edge.TargetNode;
-
-                source.Attr.Shape = dest.Attr.Shape = Shape.Circle;
-                source.LabelText = dest.LabelText = null;
-
-                source.Attr.LabelMargin = dest.Attr.LabelMargin = 0;
-
-                source.Attr.LineWidth = dest.Attr.LineWidth = 0.2;
-
-                source.Attr.FillColor = dest.Attr.FillColor = Color.White;
-              
-                edge.Attr.LineWidth = 0.1;
-                edge.Attr.ArrowheadLength = 1;
-
-                source.Attr.Tooltip = "Patate";
-                dest.Attr.Tooltip = "Patate";
-
-
-                // Si le l'arc contient 2 noeuds dans le selected_path, alors c'est un arc dans le chemin final
-                if (jsonGraph.SelectedPath.Select(n=>n.Id).Count(id=>id == source.Id || id == dest.Id) == 2)
-                {
-                    edge.Attr.LineWidth = 1;
-                    edge.Attr.Color = Color.Red;
-                }
-
-
-                if(nodes.ContainsKey(source.Id))
-                {
-                    source.Attr.FillColor = cmap.getColor(nodes[source.Id].HeuristicValue);
-                    source.LabelText = nodes[source.Id].Order.ToString();
-                }
-
-                if (nodes.ContainsKey(dest.Id))
-                {
-                    dest.Attr.FillColor = cmap.getColor(nodes[dest.Id].HeuristicValue);
-                    dest.LabelText = nodes[dest.Id].Order.ToString();
-                }
-            }
-
-            //g.LayoutAlgorithmSettings = new FastIncrementalLayoutSettings();
-
-            g.Attr.MinNodeHeight = 1;
-            g.Attr.MinNodeWidth = 1;
-
-            return g;
+            return file_names;
         }
-        */
+
 
         /// <summary>
         /// Retourne un object CustomGraph qui pourra être utilisé pour générer la visualisation

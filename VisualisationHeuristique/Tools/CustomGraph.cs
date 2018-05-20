@@ -54,23 +54,34 @@ namespace VisualisationHeuristique.Tools
         {
             Graph graph = new Graph();
 
+            ColorMap cmap = new ColorMap(Color.Yellow, Color.Red, heuristicMax(), heuristicMin());
+
             foreach(CustomNode source in nodes.Values)
             {
                 foreach(CustomNode dest in source.successors.Values)
                 {
+                    // Si l'on ne veut afficher que les noeuds visités
+                    if (only_visited && !dest.visited)
+                    {
+                        continue;
+                    }
+
                     Edge msagl_edge = graph.AddEdge(source.id, dest.id);
 
                     Node msagl_source_node = msagl_edge.SourceNode;
                     Node msagl_dest_node = msagl_edge.TargetNode;
 
                     // On change le style des noeuds de départ et d'arrivée
-                    source.style_node(msagl_source_node);
-                    dest.style_node(msagl_dest_node);
+                    source.styleNode(msagl_source_node, cmap);
+                    dest.styleNode(msagl_dest_node, cmap);
 
                     // On change le style de l'arc en fonction des noeuds de départ et d'arrivée
-                    style_edge(source, dest, msagl_edge);
+                    styleEdge(source, dest, msagl_edge);
                 }
             }
+
+            graph.Attr.MinNodeHeight = 4;
+            graph.Attr.MinNodeWidth = 4;
 
             return graph;
         }
@@ -81,7 +92,7 @@ namespace VisualisationHeuristique.Tools
         /// <param name="source">Noeud de départ de l'arc</param>
         /// <param name="dest">Noeud de destination de l'arc</param>
         /// <param name="edge">Arc MSAGL dont l'on veut changer le style</param>
-        private void style_edge(CustomNode source, CustomNode dest, Edge edge)
+        private void styleEdge(CustomNode source, CustomNode dest, Edge edge)
         {
             edge.Attr.LineWidth = 0.1;
             edge.Attr.ArrowheadLength = 1;
@@ -92,6 +103,43 @@ namespace VisualisationHeuristique.Tools
                 edge.Attr.LineWidth = 1.5;
                 edge.Attr.Color = Color.Red;
             }
+        }
+
+        /// <summary>
+        /// Retourne la valeur maximale de l'heuristique des noeuds visités dans le graphe
+        /// </summary>
+        /// <returns>Valeur maximale de l'heuristique</returns>
+        private float heuristicMax()
+        {
+            float maxi = float.MinValue;
+
+            foreach (CustomNode n in nodes.Values)
+            {
+                if (n.visited && n.heuristic_value > maxi)
+                {
+                    maxi = n.heuristic_value;
+                }
+            }
+            return maxi;
+        }
+
+        /// <summary>
+        /// Retourne la valeur minimale de l'heuristique des noeuds visités dans le graphe
+        /// </summary>
+        /// <returns>Valeur minimale de l'heuristique</returns>
+        private float heuristicMin()
+        {
+            float mini = float.MaxValue;
+
+            foreach(CustomNode n in nodes.Values)
+            {
+                if(n.visited && n.heuristic_value < mini)
+                {
+                    mini = n.heuristic_value;
+                }
+            }
+
+            return mini;
         }
     }
 }

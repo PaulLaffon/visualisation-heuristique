@@ -1,5 +1,4 @@
-﻿using Microsoft.Msagl.Drawing;
-using Microsoft.Msagl.WpfGraphControl;
+﻿using Microsoft.Msagl.WpfGraphControl;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -14,39 +13,68 @@ namespace VisualisationHeuristique
     public partial class Visualisation : Window
     {
         private GraphViewer viewer;
-        private List<string> options;
+        private List<string> optionsTypeAffichage;
 
+        private readonly string folderName = "traces";
+
+        private CustomGraph graphe;
+
+        /// <summary>
+        /// Constructeur
+        /// </summary>
         public Visualisation()
         {
             InitializeComponent();
 
-            options = new List<string>() { "option1", "option2" };
-            optionCombobox.ItemsSource = options;
-            //optionCombobox.SelectedIndex = 0; -> en avoir un select de base
-
             viewer = new GraphViewer();
             viewer.RunLayoutAsync = true;
-       
+            
             viewer.BindToPanel(this.grapheContainer);
         }
 
+        /// <summary>
+        /// Fonction appelée quand la vue qui va contenir le graphe est chargée
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void grapheContainer_Loaded(object sender, RoutedEventArgs e)
         {
-            CustomGraph g = new CustomGraph();
+            selectFile.ItemsSource = JsonGraphProvider.getJsonFileFromFolder(folderName);
+            selectFile.SelectedIndex = 0;
 
-            g = JsonGraphProvider.loadGraphFromFile("traces_simple.json");
-
-            viewer.Graph = g.getVisualGraph();
+            optionsTypeAffichage = new List<string>() { "Total", "Visité" };
+            typeAffichage.ItemsSource = optionsTypeAffichage;
+            typeAffichage.SelectedIndex = 0; // Total est selectionné par défault
         }
 
-        private void optionCombobox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        /// <summary>
+        /// Fonction appelée quand la valeur du combo box qui gère le type d'affichage change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void typeAffichage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Console.WriteLine(optionCombobox.SelectedItem);
+            if (typeAffichage.SelectedIndex == 0)
+            {
+                viewer.Graph = graphe.getVisualGraph(false);
+            }
+            else if(typeAffichage.SelectedIndex == 1)
+            {
+                viewer.Graph = graphe.getVisualGraph(true);
+            }
+        }
 
-            Graph g = new Graph();
-            g.AddEdge("Patate", "Pomme de Terre");
+        /// <summary>
+        /// Fonction appelée quand le valeur du combo box qui gère le fichier change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void selectFile_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            graphe = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectFile.SelectedItem.ToString());
 
-            viewer.Graph = g;
+            typeAffichage_SelectionChanged(null, null);
         }
     }
 }

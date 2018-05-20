@@ -38,16 +38,16 @@ namespace VisualisationHeuristique.Tools
         /// Change le style d'un noeud MSAGL en fonction des différents attributs du noeud en mémoire
         /// </summary>
         /// <param name="node">Noeud MSAGL correspondant au CustomNode</param>
-        public void style_node(Node node)
+        public void styleNode(Node node, ColorMap cmap)
         {
             node.Attr.Shape = Shape.Circle;
             node.Attr.LabelMargin = 0;
             node.Attr.LineWidth = 0.2;
-            node.Attr.Tooltip = "Patate";
+            node.Attr.Tooltip = getTooltip();
 
             if (visited)
             {
-                node.Attr.FillColor = Color.Blue;
+                node.Attr.FillColor = cmap.getColor(heuristic_value);
                 node.LabelText = order_visited.ToString();
             }
             else
@@ -55,6 +55,29 @@ namespace VisualisationHeuristique.Tools
                 node.Attr.FillColor = Color.White;
                 node.LabelText = null;
             }
+        }
+
+        /// <summary>
+        /// Renvoie un texte décrivant le noeuds afin d'être utilisé dans le tooltip 
+        /// </summary>
+        /// <returns>string décrivant le noeud</returns>
+        private string getTooltip()
+        {
+            string tooltip = "";
+
+            tooltip += "Node id : " + id;
+
+            if(visited)
+            {
+                tooltip += "\n" + "Heuristique value : " + heuristic_value.ToString();
+                tooltip += "\n" + "Ordre de visite : " + order_visited.ToString();
+            }
+
+            tooltip += "\n" + "Ordre de découverte : " + order_discovered.ToString();
+            tooltip += "\n" + "Nombre de fils : " + successors.Count;
+            tooltip += "\n" + "Nombre de pères : " + predecessors.Count;
+
+            return tooltip;
         }
     }
 }
