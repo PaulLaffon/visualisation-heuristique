@@ -80,8 +80,8 @@ namespace VisualisationHeuristique.Tools
                 }
             }
 
-            graph.Attr.MinNodeHeight = 4;
-            graph.Attr.MinNodeWidth = 4;
+            graph.Attr.MinNodeHeight = 6;
+            graph.Attr.MinNodeWidth = 6;
 
             return graph;
         }
@@ -102,6 +102,7 @@ namespace VisualisationHeuristique.Tools
             {
                 edge.Attr.LineWidth = 1.5;
                 edge.Attr.Color = Color.Red;
+                edge.LabelText = (dest.heuristic_value - source.heuristic_value).ToString();
             }
         }
 

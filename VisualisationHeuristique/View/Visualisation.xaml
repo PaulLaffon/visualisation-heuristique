@@ -5,12 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VisualisationHeuristique"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="500" Width="700">
     <DockPanel>
         <ComboBox DockPanel.Dock="Top" Width="300" x:Name="typeAffichage" SelectionChanged="typeAffichage_SelectionChanged" />
         <ComboBox DockPanel.Dock="Top" Width="300" x:Name="selectFile" SelectionChanged="selectFile_SelectionChanged" />
-        <ProgressBar DockPanel.Dock="Top" Width="300" Height="20" IsIndeterminate="True"/>
-        <DockPanel x:Name="grapheContainer" Loaded="grapheContainer_Loaded" />
+        <DockPanel x:Name="grapheContainer" Loaded="grapheContainer_Loaded" Panel.ZIndex="-500" />
 
     </DockPanel>
 </Window>
