@@ -68,6 +68,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tools\ColorMap.cs" />
+    <Compile Include="Tools\CustomEdge.cs" />
     <Compile Include="Tools\CustomGraph.cs" />
     <Compile Include="Tools\CustomNode.cs" />
     <Compile Include="Tools\JsonGraphProvider.cs" />

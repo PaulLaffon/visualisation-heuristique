@@ -1,8 +1,6 @@
 ﻿using Microsoft.Msagl.WpfGraphControl;
-using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows;
-using System.Windows.Controls;
 using VisualisationHeuristique.Tools;
 
 namespace VisualisationHeuristique
@@ -10,71 +8,95 @@ namespace VisualisationHeuristique
     /// <summary>
     /// Interaction logic for Visualisation.xaml
     /// </summary>
-    public partial class Visualisation : Window
+    public partial class Visualisation : Window, INotifyPropertyChanged
     {
-        private GraphViewer viewer;
-        private List<string> optionsTypeAffichage;
+        private GraphViewer viewer1;
+        private GraphViewer viewer2;
 
         private readonly string folderName = "traces";
 
-        private CustomGraph graphe;
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string property)
+        {
+            PropertyChanged(this, new PropertyChangedEventArgs(property));
+        }
+
+        private bool secondaryVisible = false;
+        public bool SecondaryVisible {
+            get { return secondaryVisible; }
+            private set { secondaryVisible = value; OnPropertyChanged("SecondaryVisible"); }
+        }
 
         /// <summary>
         /// Constructeur
         /// </summary>
         public Visualisation()
         {
+            this.DataContext = this;
             InitializeComponent();
 
-            viewer = new GraphViewer();
-            viewer.RunLayoutAsync = true;
+            viewer1 = new GraphViewer();
+            viewer1.RunLayoutAsync = true;
             
-            viewer.BindToPanel(this.grapheContainer);
+            viewer1.BindToPanel(this.grapheContainer1);
+
+            viewer2 = new GraphViewer();
+            viewer2.RunLayoutAsync = true;
+            viewer2.BindToPanel(this.grapheContainer2);
         }
 
         /// <summary>
-        /// Fonction appelée quand la vue qui va contenir le graphe est chargée
+        /// Fonction appelée quand la vue qui va contenir le graphe principal est chargée
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void grapheContainer_Loaded(object sender, RoutedEventArgs e)
         {
-            selectFile.ItemsSource = JsonGraphProvider.getJsonFileFromFolder(folderName);
-            selectFile.SelectedIndex = 0;
+            selectedMainFile.ItemsSource = JsonGraphProvider.getJsonFileFromFolder(folderName);
+            selectedMainFile.SelectedIndex = 0;
 
-            optionsTypeAffichage = new List<string>() { "Total", "Visité" };
-            typeAffichage.ItemsSource = optionsTypeAffichage;
-            typeAffichage.SelectedIndex = 0; // Total est selectionné par défault
-        }
+            selectedSecondaryFile.ItemsSource = JsonGraphProvider.getJsonFileFromFolder(folderName);
+            selectedSecondaryFile.SelectedIndex = 0;
 
+            allNodes.IsChecked = true;
+            oneGraph.IsChecked = true;
 
-        /// <summary>
-        /// Fonction appelée quand la valeur du combo box qui gère le type d'affichage change
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void typeAffichage_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (typeAffichage.SelectedIndex == 0)
-            {
-                viewer.Graph = graphe.getVisualGraph(false);
-            }
-            else if(typeAffichage.SelectedIndex == 1)
-            {
-                viewer.Graph = graphe.getVisualGraph(true);
-            }
+            // Calculer le layout du graphe au lancement de l'application
+            calculer_Clicked(null, null);
         }
 
         /// <summary>
-        /// Fonction appelée quand le valeur du combo box qui gère le fichier change
+        /// Fonction appelée quand on clique sur le bouton "Calculer"
+        /// Recalcul le layout du ou des graphes avec les nouveaux paramètres
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void selectFile_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void calculer_Clicked(object sender, RoutedEventArgs e)
         {
-            graphe = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectFile.SelectedItem.ToString());
+            // Si on ne veut afficher que un seul graphe 
+            if((bool)oneGraph.IsChecked)
+            {
+                SecondaryVisible = false;
+                CustomGraph graphe = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedMainFile.SelectedItem.ToString());
+                viewer1.Graph = graphe.getVisualGraph((bool)visitedNodes.IsChecked);
+            }
+            else if((bool)twoInOne.IsChecked) // Si on veut afficher deux graphe dans la même vue
+            {
+                SecondaryVisible = false;
+                CustomGraph graphe1 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedMainFile.SelectedItem.ToString());
+                CustomGraph graphe2 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedSecondaryFile.SelectedItem.ToString());
 
-            typeAffichage_SelectionChanged(null, null);
+                viewer1.Graph = graphe1.merge(graphe2).getVisualGraph((bool)visitedNodes.IsChecked);
+            }
+            else if((bool)twoGraphs.IsChecked) // Si on veut afficher 2 graphes cote à cote
+            {
+                SecondaryVisible = true;
+                CustomGraph graphe1 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedMainFile.SelectedItem.ToString());
+                CustomGraph graphe2 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedSecondaryFile.SelectedItem.ToString());
+
+                viewer1.Graph = graphe1.getVisualGraph((bool)visitedNodes.IsChecked);
+                viewer2.Graph = graphe2.getVisualGraph((bool)visitedNodes.IsChecked);
+            }
         }
     }
 }

@@ -13,13 +13,14 @@ namespace VisualisationHeuristique.Tools
         public bool visited { get; set; }
         public bool in_selected_path { get; set; }
         public float heuristic_value { get; set; }
+        public float real_final_value { get; set; }
 
         public int order_visited { get; set; }
         public int order_discovered { get; set; }
         
 
-        public Dictionary<string, CustomNode> successors { get; set; }
-        public Dictionary<string, CustomNode> predecessors { get; set; }
+        public Dictionary<string, CustomEdge> successors { get; set; }
+        public Dictionary<string, CustomEdge> predecessors { get; set; }
 
         /// <summary>
         /// Constructeur
@@ -29,8 +30,8 @@ namespace VisualisationHeuristique.Tools
         {
             this.id = id;
 
-            successors = new Dictionary<string, CustomNode>();
-            predecessors = new Dictionary<string, CustomNode>();
+            successors = new Dictionary<string, CustomEdge>();
+            predecessors = new Dictionary<string, CustomEdge>();
         }
 
 
@@ -70,7 +71,6 @@ namespace VisualisationHeuristique.Tools
             if(visited)
             {
                 tooltip += "\n" + "Heuristique value : " + heuristic_value.ToString();
-                tooltip += "\n" + "Ordre de visite : " + order_visited.ToString();
             }
 
             tooltip += "\n" + "Ordre de découverte : " + order_discovered.ToString();

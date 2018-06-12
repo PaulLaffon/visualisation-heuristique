@@ -8,6 +8,9 @@ namespace VisualisationHeuristique.Tools
     /// </summary>
     class CustomGraph
     {
+        /// <summary>
+        /// Tous les noeuds composant le graphe
+        /// </summary>
         public Dictionary<string, CustomNode> nodes { get; }
 
         /// <summary>
@@ -24,7 +27,7 @@ namespace VisualisationHeuristique.Tools
         /// </summary>
         /// <param name="source_id">Id du noeud de départ</param>
         /// <param name="dest_id">Id du noeud de destination</param>
-        public void addEdge(string source_id, string dest_id, int order_discovered)
+        public void addEdge(string source_id, string dest_id, int order_discovered, string edge_name)
         {
             if(!nodes.ContainsKey(source_id))
             {
@@ -35,15 +38,73 @@ namespace VisualisationHeuristique.Tools
             {
                 nodes.Add(dest_id, new CustomNode(dest_id));
             }
+            else
+            {
+                return;
+            }
 
             CustomNode source = nodes[source_id];
             CustomNode dest = nodes[dest_id];
 
             dest.order_discovered = order_discovered;
 
-            source.successors.Add(dest_id, dest);
-            dest.predecessors.Add(source_id, source);
+            source.successors.Add(dest_id, new CustomEdge() { name = edge_name, source = source, dest = dest });
+            dest.predecessors.Add(source_id, new CustomEdge() { name = edge_name, source = source, dest = dest });
         }
+
+        /// <summary>
+        /// Ajoute un noeuds dans le cas de la fusion de 2 graphes
+        /// </summary>
+        /// <param name="source_id">Id du noeuds de départ</param>
+        /// <param name="dest_id">Id du noeuds d'arrivé</param>
+        /// <param name="edge_name">Nom de l'arc</param>
+        private void addMergeEdge(string source_id, string dest_id, string edge_name)
+        {
+            if (!nodes.ContainsKey(source_id))
+            {
+                nodes.Add(source_id, new CustomNode(source_id));
+            }
+
+            if (!nodes.ContainsKey(dest_id))
+            {
+                nodes.Add(dest_id, new CustomNode(dest_id));
+            }
+
+            CustomNode source = nodes[source_id];
+            CustomNode dest = nodes[dest_id];
+
+            //dest.order_discovered = order_discovered;
+
+            if (!source.successors.ContainsKey(dest_id))
+            {
+                source.successors.Add(dest_id, new CustomEdge() { name = edge_name, source = source, dest = dest });
+            }
+            if(!dest.predecessors.ContainsKey(source_id))
+            {
+                dest.predecessors.Add(source_id, new CustomEdge() { name = edge_name, source = source, dest = dest });
+            }
+        }
+
+        /// <summary>
+        /// Fusionne 2 graphe en un seul afin de pouvoir comparer ces deux graphes dans un seul
+        /// </summary>
+        /// <param name="graph">Graphe avec lequel fusionner</param>
+        /// <returns>CustomGraph résultant de la fusion des 2 graphes</returns>
+        public CustomGraph merge(CustomGraph graph)
+        {
+            CustomGraph merge_result = this;
+
+            foreach(CustomNode source in graph.nodes.Values)
+            {
+                foreach(CustomEdge link in source.successors.Values)
+                {
+                    merge_result.addMergeEdge(link.source.id, link.dest.id, link.name);
+                }
+            }
+
+            return merge_result;
+        }
+
 
         /// <summary>
         /// Retourne un Graph MSAGL qui peut être qui peut être affichier dans la vue
@@ -58,8 +119,10 @@ namespace VisualisationHeuristique.Tools
 
             foreach(CustomNode source in nodes.Values)
             {
-                foreach(CustomNode dest in source.successors.Values)
+                foreach(CustomEdge link in source.successors.Values)
                 {
+                    CustomNode dest = link.dest;
+
                     // Si l'on ne veut afficher que les noeuds visités
                     if (only_visited && !dest.visited)
                     {
@@ -76,7 +139,7 @@ namespace VisualisationHeuristique.Tools
                     dest.styleNode(msagl_dest_node, cmap);
 
                     // On change le style de l'arc en fonction des noeuds de départ et d'arrivée
-                    styleEdge(source, dest, msagl_edge);
+                    styleEdge(link, msagl_edge);
                 }
             }
 
@@ -92,17 +155,19 @@ namespace VisualisationHeuristique.Tools
         /// <param name="source">Noeud de départ de l'arc</param>
         /// <param name="dest">Noeud de destination de l'arc</param>
         /// <param name="edge">Arc MSAGL dont l'on veut changer le style</param>
-        private void styleEdge(CustomNode source, CustomNode dest, Edge edge)
+        private void styleEdge(CustomEdge cedge, Edge edge)
         {
             edge.Attr.LineWidth = 0.1;
             edge.Attr.ArrowheadLength = 1;
 
             // Si les 2 noeuds de l'arc font parti du chemin final
-            if(source.in_selected_path && dest.in_selected_path)
+            if(cedge.source.in_selected_path && cedge.dest.in_selected_path)
             {
                 edge.Attr.LineWidth = 1.5;
                 edge.Attr.Color = Color.Red;
-                edge.LabelText = (dest.heuristic_value - source.heuristic_value).ToString();
+                //edge.LabelText = (dest.heuristic_value - source.heuristic_value).ToString();
+                edge.LabelText = cedge.name;
+                
             }
         }
 

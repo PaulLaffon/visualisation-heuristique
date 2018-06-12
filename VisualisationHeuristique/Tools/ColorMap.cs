@@ -3,7 +3,7 @@
 namespace VisualisationHeuristique.Tools
 {   
     /// <summary>
-    /// 
+    /// Classe permettant de générer des colormap à partir des valeurs d'heuristique
     /// </summary>
     internal class ColorMap
     {

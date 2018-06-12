@@ -5,11 +5,55 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VisualisationHeuristique"
         mc:Ignorable="d"
+        x:Name="RootWindow"
         Title="MainWindow" Height="500" Width="700">
     <DockPanel>
-        <ComboBox DockPanel.Dock="Top" Width="300" x:Name="typeAffichage" SelectionChanged="typeAffichage_SelectionChanged" />
-        <ComboBox DockPanel.Dock="Top" Width="300" x:Name="selectFile" SelectionChanged="selectFile_SelectionChanged" />
-        <DockPanel x:Name="grapheContainer" Loaded="grapheContainer_Loaded" Panel.ZIndex="-500" />
+        <StackPanel DockPanel.Dock="Left" MinWidth="150" Background="WhiteSmoke">
+            <GroupBox Header="Type affichage" Margin="5" Padding="5, 10, 5, 5">
+                <StackPanel Orientation="Vertical">
+                    <RadioButton GroupName="affichage" x:Name="oneGraph">Unique</RadioButton>
+                    <RadioButton GroupName="affichage" x:Name="twoGraphs">Comparaison cote à cote</RadioButton>
+                    <RadioButton GroupName="affichage" x:Name="twoInOne">Comparaison</RadioButton>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Affichage des noeuds" Margin="5" Padding="5, 10, 5, 5">
+                <StackPanel Orientation="Vertical">
+                    <RadioButton GroupName="noeuds" x:Name="allNodes">Tous</RadioButton>
+                    <RadioButton GroupName="noeuds" x:Name="visitedNodes">Visités</RadioButton>
+                </StackPanel>
+            </GroupBox>
+
+            <TextBlock Text="Choix du graphe :" VerticalAlignment="Center" Margin="5 10 0 0"/>
+            <ComboBox x:Name="selectedMainFile" Margin="5 0" />
+
+            <TextBlock Text="Choix du graphe secondaire :" VerticalAlignment="Center" Margin="5 10 0 0"/>
+            <ComboBox x:Name="selectedSecondaryFile" Margin="5 0" />
+
+            <Button Width="50" Margin="0 10 0 0" Click="calculer_Clicked">Calculer</Button>
+        </StackPanel>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition>
+                    <ColumnDefinition.Style>
+                        <Style TargetType="{x:Type ColumnDefinition}">
+                            <Setter Property="Width" Value="*"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SecondaryVisible, Mode=OneWay}" Value="False">
+                                    <Setter Property="Width" Value="0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ColumnDefinition.Style>
+                </ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <DockPanel x:Name="grapheContainer1" Loaded="grapheContainer_Loaded" ClipToBounds="True" Grid.Column="0"/>
+            <Border BorderBrush="Gray" BorderThickness="1 0 0 0"  Grid.Column="1">
+                <DockPanel x:Name="grapheContainer2" ClipToBounds="True"/>
+            </Border>
+        </Grid>
 
     </DockPanel>
 </Window>

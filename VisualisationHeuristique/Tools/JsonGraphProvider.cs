@@ -7,6 +7,11 @@ namespace VisualisationHeuristique
 {
     class JsonGraphProvider
     {
+        /// <summary>
+        /// Retorne la liste des fichiers JSON d'un dossier
+        /// </summary>
+        /// <param name="folder_name">Nom du dossier ou chercher les fichiers</param>
+        /// <returns>Liste des noms des fichiers JSON présent dans le dossier</returns>
         public static List<string> getJsonFileFromFolder(string folder_name)
         {
             List<string> file_names = new List<string>();
@@ -52,7 +57,7 @@ namespace VisualisationHeuristique
             // On ajoute tous les arcs
             foreach (JsonEdge edge in jsonGraph.ExecutionNodes)
             {
-                graph.addEdge(edge.Source, edge.Dest, edge.Time);
+                graph.addEdge(edge.Source, edge.Dest, edge.Time, edge.Name);
             }
 
             // On ajoute les informations comprises dans "node_selection"
@@ -62,6 +67,7 @@ namespace VisualisationHeuristique
 
                 graph_node.visited = true;
                 graph_node.heuristic_value = node.HeuristicValue;
+                graph_node.real_final_value = node.RealFinalValue;
                 graph_node.order_visited = node.Order;
             }
 
@@ -103,6 +109,9 @@ namespace VisualisationHeuristique
         [JsonProperty(PropertyName = "heuristic_value")]
         public float HeuristicValue { get; set; }
 
+        [JsonProperty(PropertyName = "real_final_value")]
+        public float RealFinalValue { get; set; }
+
         public int Order { get; set; }
     }
 
@@ -112,6 +121,7 @@ namespace VisualisationHeuristique
     internal class JsonEdge
     {
         public int Time { get; set; }
+        public string Name { get; set; }
 
         public string Source { get; set; }
         public string Dest { get; set; }
