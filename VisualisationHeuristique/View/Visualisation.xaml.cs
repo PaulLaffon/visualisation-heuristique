@@ -58,8 +58,16 @@ namespace VisualisationHeuristique
             selectedSecondaryFile.ItemsSource = JsonGraphProvider.getJsonFileFromFolder(folderName);
             selectedSecondaryFile.SelectedIndex = 0;
 
-            allNodes.IsChecked = true;
+            // Les options sélectionnées par défauts
             oneGraph.IsChecked = true;
+
+            mainGraphGroupNodes.IsChecked = true;
+            mainGraphVisitedNodes.IsChecked = true;
+
+            secondGraphGroupNodes.IsChecked = true;
+            secondGraphVisitedNodes.IsChecked = true;
+
+            secondGraph.Visibility = Visibility.Collapsed;
 
             // Calculer le layout du graphe au lancement de l'application
             calculer_Clicked(null, null);
@@ -73,30 +81,48 @@ namespace VisualisationHeuristique
         /// <param name="e"></param>
         private void calculer_Clicked(object sender, RoutedEventArgs e)
         {
+            SecondaryVisible = false;
+
+            // Dans tous les cas on charge le graphe principal
+            CustomGraph graphe1 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedMainFile.SelectedItem.ToString());
+
+
             // Si on ne veut afficher que un seul graphe 
-            if((bool)oneGraph.IsChecked)
+            if ((bool)oneGraph.IsChecked)
             {
-                SecondaryVisible = false;
-                CustomGraph graphe = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedMainFile.SelectedItem.ToString());
-                viewer1.Graph = graphe.getVisualGraph((bool)visitedNodes.IsChecked);
+                viewer1.Graph = graphe1.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
             }
             else if((bool)twoInOne.IsChecked) // Si on veut afficher deux graphe dans la même vue
             {
-                SecondaryVisible = false;
-                CustomGraph graphe1 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedMainFile.SelectedItem.ToString());
                 CustomGraph graphe2 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedSecondaryFile.SelectedItem.ToString());
 
-                viewer1.Graph = graphe1.merge(graphe2).getVisualGraph((bool)visitedNodes.IsChecked);
+                viewer1.Graph = graphe1.merge(graphe2).getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
             }
             else if((bool)twoGraphs.IsChecked) // Si on veut afficher 2 graphes cote à cote
             {
                 SecondaryVisible = true;
-                CustomGraph graphe1 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedMainFile.SelectedItem.ToString());
                 CustomGraph graphe2 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedSecondaryFile.SelectedItem.ToString());
 
-                viewer1.Graph = graphe1.getVisualGraph((bool)visitedNodes.IsChecked);
-                viewer2.Graph = graphe2.getVisualGraph((bool)visitedNodes.IsChecked);
+                viewer1.Graph = graphe1.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
+                viewer2.Graph = graphe2.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
             }
+        }
+
+
+
+        private void twoGraphs_Checked(object sender, RoutedEventArgs e)
+        {
+            secondGraph.Visibility = Visibility.Visible;
+        }
+
+        private void oneGraph_Checked(object sender, RoutedEventArgs e)
+        {
+            secondGraph.Visibility = Visibility.Collapsed;
+        }
+
+        private void twoInOne_Checked(object sender, RoutedEventArgs e)
+        {
+            secondGraph.Visibility = Visibility.Visible;
         }
     }
 }

@@ -6,31 +6,54 @@
         xmlns:local="clr-namespace:VisualisationHeuristique"
         mc:Ignorable="d"
         x:Name="RootWindow"
-        Title="MainWindow" Height="500" Width="700">
+        Title="MainWindow" Height="700" Width="900">
     <DockPanel>
         <StackPanel DockPanel.Dock="Left" MinWidth="150" Background="WhiteSmoke">
             <GroupBox Header="Type affichage" Margin="5" Padding="5, 10, 5, 5">
                 <StackPanel Orientation="Vertical">
-                    <RadioButton GroupName="affichage" x:Name="oneGraph">Unique</RadioButton>
-                    <RadioButton GroupName="affichage" x:Name="twoGraphs">Comparaison cote à cote</RadioButton>
-                    <RadioButton GroupName="affichage" x:Name="twoInOne">Comparaison</RadioButton>
+                    <RadioButton GroupName="affichage" x:Name="oneGraph" Checked="oneGraph_Checked">Unique</RadioButton>
+                    <RadioButton GroupName="affichage" x:Name="twoGraphs" Checked="twoGraphs_Checked">Comparaison cote à cote</RadioButton>
+                    <RadioButton GroupName="affichage" x:Name="twoInOne" Checked="twoInOne_Checked">Comparaison groupée</RadioButton>
                 </StackPanel>
             </GroupBox>
+
+            <TextBlock Text="Choix du graphe principal :" VerticalAlignment="Center" Margin="5 10 0 0"/>
+            <ComboBox x:Name="selectedMainFile" Margin="5 0 5 5" />
 
             <GroupBox Header="Affichage des noeuds" Margin="5" Padding="5, 10, 5, 5">
                 <StackPanel Orientation="Vertical">
-                    <RadioButton GroupName="noeuds" x:Name="allNodes">Tous</RadioButton>
-                    <RadioButton GroupName="noeuds" x:Name="visitedNodes">Visités</RadioButton>
+                    <RadioButton GroupName="mainGraphNodes">Tous</RadioButton>
+                    <RadioButton GroupName="mainGraphNodes" x:Name="mainGraphVisitedNodes">Visités</RadioButton>
                 </StackPanel>
             </GroupBox>
 
-            <TextBlock Text="Choix du graphe :" VerticalAlignment="Center" Margin="5 10 0 0"/>
-            <ComboBox x:Name="selectedMainFile" Margin="5 0" />
+            <GroupBox Header="Grouper les noeuds" Margin="5" Padding="5, 10, 5, 5">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton GroupName="mainGraphGroupNodes" x:Name="mainGraphGroupNodes" Padding="5 0">Oui</RadioButton>
+                    <RadioButton GroupName="mainGraphGroupNodes">Non</RadioButton>
+                </StackPanel>
+            </GroupBox>
 
-            <TextBlock Text="Choix du graphe secondaire :" VerticalAlignment="Center" Margin="5 10 0 0"/>
-            <ComboBox x:Name="selectedSecondaryFile" Margin="5 0" />
+            <StackPanel x:Name="secondGraph">
+                <TextBlock Text="Choix du graphe secondaire :" VerticalAlignment="Center" Margin="5 20 0 0"/>
+                <ComboBox x:Name="selectedSecondaryFile" Margin="5 0" />
 
-            <Button Width="50" Margin="0 10 0 0" Click="calculer_Clicked">Calculer</Button>
+                <GroupBox Header="Affichage des noeuds" Margin="5" Padding="5, 10, 5, 5">
+                    <StackPanel Orientation="Vertical">
+                        <RadioButton GroupName="secondGraphNodes">Tous</RadioButton>
+                        <RadioButton GroupName="secondGraphNodes" x:Name="secondGraphVisitedNodes">Visités</RadioButton>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Grouper les noeuds" Margin="5" Padding="5, 10, 5, 5">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton GroupName="secondGraphGroupNodes" x:Name="secondGraphGroupNodes" Padding="5 0">Oui</RadioButton>
+                        <RadioButton GroupName="secondGraphGroupNodes">Non</RadioButton>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+
+            <Button Width="60" Margin="0 15 0 0" Click="calculer_Clicked">Calculer</Button>
         </StackPanel>
 
         <Grid>

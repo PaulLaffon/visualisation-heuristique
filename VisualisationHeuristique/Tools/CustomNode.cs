@@ -1,5 +1,7 @@
 ﻿using Microsoft.Msagl.Drawing;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace VisualisationHeuristique.Tools
 {
@@ -17,7 +19,8 @@ namespace VisualisationHeuristique.Tools
 
         public int order_visited { get; set; }
         public int order_discovered { get; set; }
-        
+
+
 
         public Dictionary<string, CustomEdge> successors { get; set; }
         public Dictionary<string, CustomEdge> predecessors { get; set; }
@@ -36,26 +39,120 @@ namespace VisualisationHeuristique.Tools
 
 
         /// <summary>
-        /// Change le style d'un noeud MSAGL en fonction des différents attributs du noeud en mémoire
+        /// Compte récursivement le nombre de fils de ce noeuds
         /// </summary>
-        /// <param name="node">Noeud MSAGL correspondant au CustomNode</param>
-        public void styleNode(Node node, ColorMap cmap)
+        /// <returns>Nombre de successeur du noeuds</returns>
+        private int getNumberChildren()
+        {
+            int childs = 0;
+            
+            foreach(CustomEdge edge in successors.Values)
+            {
+                childs += edge.dest.getNumberChildren() + 1;
+            }
+
+            return childs;
+        }
+
+        /// <summary>
+        /// Recherche la valeur minimale de l'heuristique des noeuds fils
+        /// </summary>
+        /// <returns>Valeur minimale de l'heuristique</returns>
+        private float childsMinHeuristic()
+        {
+            float heuristicMin = heuristic_value;
+
+            foreach(CustomEdge edge in successors.Values)
+            {
+                if(edge.dest.visited)
+                {
+                    heuristicMin = Math.Min(edge.dest.childsMinHeuristic(), heuristicMin);
+                }
+            }
+
+            return heuristicMin;
+        }
+
+        /// <summary>
+        /// Recherche la valeur maximale de l'heurtisque des noeuds fils
+        /// </summary>
+        /// <returns></returns>
+        private float childsMaxHeuristic()
+        {
+            float heuristicMax = heuristic_value;
+
+            foreach (CustomEdge edge in successors.Values)
+            {
+                if (edge.dest.visited)
+                {
+                    heuristicMax = Math.Max(edge.dest.childsMaxHeuristic(), heuristicMax);
+                }
+            }
+
+            return heuristicMax;
+        }
+
+
+        /// <summary>
+        /// Style par default de tous les noeuds du graphe
+        /// Une fois ce style par default appliqué, des surcharges peuvent être faites en fonction du type de noeuds
+        /// </summary>
+        /// <param name="node">Noeuds MSAGL correspondant au CustomNode dont on change le style</param>
+        /// <param name="cmap">Colormap pour appliquer le stype au noeuds</param>
+        private void defaultNodeStyle(Node node, ColorMap cmap)
         {
             node.Attr.Shape = Shape.Circle;
             node.Attr.LabelMargin = 0;
             node.Attr.LineWidth = 0.2;
-            node.Attr.Tooltip = getTooltip();
 
-            if (visited)
+            if(visited)
             {
                 node.Attr.FillColor = cmap.getColor(heuristic_value);
-                node.LabelText = order_visited.ToString();
             }
             else
             {
                 node.Attr.FillColor = Color.White;
                 node.LabelText = null;
             }
+        }
+
+        
+        /// <summary>
+        /// Style classique pour les noeuds du graphe
+        /// </summary>
+        /// <param name="node">Noeuds MSAGL à styliser</param>
+        /// <param name="cmap"></param>
+        public void styleNode(Node node, ColorMap cmap)
+        {
+            defaultNodeStyle(node, cmap);
+            node.Attr.Tooltip = getTooltip();
+
+            if (visited)
+            {
+                node.LabelText = order_visited.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Style pour les noeuds grouper, ces noeuds contienent plusieurs noeuds
+        /// </summary>
+        /// <param name="node">Noeuds MSAGL à styliser</param>
+        /// <param name="cmap"></param>
+        /// <param name="nodeSize">Nombre de noeuds dans ce noeuds grouper</param>
+        public void styleNodeGrouped(Node node, ColorMap cmap)
+        {
+            int nodeSize = getNumberChildren() + 1;
+
+            defaultNodeStyle(node, cmap);
+
+            string groupedTooltip = "Nombre de noeuds : " + nodeSize.ToString();
+            groupedTooltip += "\nHeuristique max : " + childsMaxHeuristic().ToString();
+            groupedTooltip += "\nHeuristique min : " + childsMinHeuristic().ToString();
+
+            node.Attr.Tooltip = groupedTooltip;
+
+            node.LabelText = "";
+            node.Attr.LabelMargin = (int)Math.Pow(nodeSize, 0.66) + 3;
         }
 
         /// <summary>
@@ -74,10 +171,23 @@ namespace VisualisationHeuristique.Tools
             }
 
             tooltip += "\n" + "Ordre de découverte : " + order_discovered.ToString();
-            tooltip += "\n" + "Nombre de fils : " + successors.Count;
-            tooltip += "\n" + "Nombre de pères : " + predecessors.Count;
 
             return tooltip;
         }
+
+
+
+        /// <summary>
+        /// Les attributs suivants ne sont utilisé que dans le cas d'une fusion entre 2 graphes
+        /// </summary>
+        public bool in_first_graph { get; set; }
+        public bool in_second_graph { get; set; }
+
+        public bool visited_second { get; set; }
+        public bool in_selected_path_second { get; set; }
+        public float heuristic_value_second { get; set; }
+
+        public int order_visited_second { get; set; }
+        public int order_discovered_second { get; set; }
     }
 }
