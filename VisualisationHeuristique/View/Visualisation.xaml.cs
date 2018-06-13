@@ -104,7 +104,7 @@ namespace VisualisationHeuristique
                 CustomGraph graphe2 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedSecondaryFile.SelectedItem.ToString());
 
                 viewer1.Graph = graphe1.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
-                viewer2.Graph = graphe2.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
+                viewer2.Graph = graphe2.getVisualGraph((bool)secondGraphVisitedNodes.IsChecked, (bool)secondGraphGroupNodes.IsChecked);
             }
         }
 
@@ -113,16 +113,19 @@ namespace VisualisationHeuristique
         private void twoGraphs_Checked(object sender, RoutedEventArgs e)
         {
             secondGraph.Visibility = Visibility.Visible;
+            radioSecond.Visibility = Visibility.Visible;
         }
 
         private void oneGraph_Checked(object sender, RoutedEventArgs e)
         {
             secondGraph.Visibility = Visibility.Collapsed;
+            radioSecond.Visibility = Visibility.Collapsed;
         }
 
         private void twoInOne_Checked(object sender, RoutedEventArgs e)
         {
             secondGraph.Visibility = Visibility.Visible;
+            radioSecond.Visibility = Visibility.Collapsed;
         }
     }
 }

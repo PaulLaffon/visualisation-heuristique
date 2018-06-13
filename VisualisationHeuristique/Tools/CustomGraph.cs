@@ -57,13 +57,7 @@ namespace VisualisationHeuristique.Tools
             source.successors.Add(dest_id, new CustomEdge() { name = edge_name, source = source, dest = dest });
             dest.predecessors.Add(source_id, new CustomEdge() { name = edge_name, source = source, dest = dest });
         }
-
-        /// <summary>
-        /// Ajoute un noeuds dans le cas de la fusion de 2 graphes
-        /// </summary>
-        /// <param name="source_id">Id du noeuds de départ</param>
-        /// <param name="dest_id">Id du noeuds d'arrivé</param>
-        /// <param name="edge_name">Nom de l'arc</param>
+/*
         private void addMergeEdge(string source_id, string dest_id, string edge_name)
         {
             if (!nodes.ContainsKey(source_id))
@@ -99,9 +93,63 @@ namespace VisualisationHeuristique.Tools
                 //dest.predecessors[source_id].inBothGraph = true;
             }
         }
+        */
+
+        /// <summary>
+        /// Ajoute le noeud passé en paramètre dans le graphe courrant
+        /// Est utilisé dans le cas de la fusion entre 2 graphes
+        /// </summary>
+        /// <param name="node">Node à ajouter au gaphe courrant</param>
+        private void addMergedNode(CustomNode node)
+        {
+            if(!nodes.ContainsKey(node.id))
+            {
+                nodes.Add(node.id, new CustomNode(node.id));
+            }
+
+            CustomNode insertedNode = nodes[node.id];
+            insertedNode.in_second_graph = true;
+            insertedNode.visited_second = node.visited;
+            insertedNode.in_selected_path_second = node.in_selected_path;
+            insertedNode.heuristic_value_second = node.heuristic_value;
+            insertedNode.order_discovered_second = node.order_discovered;
+            insertedNode.order_visited_second = node.order_visited;
+        }
+
+
+        /// <summary>
+        /// Ajoute tous les arcs du noeuds passé en paramètre dans le graphe courrant
+        /// Est utilisé dans le cas de la fusion entre 2 graphes
+        /// 
+        /// TODO : Ajouté aussi les predécesseurs, pour l'instant n'ajoute que les successeurs
+        /// </summary>
+        /// <param name="source">Noeud dont on souhaite ajouter tous les arcs</param>
+        private void addMergedEdges(CustomNode source)
+        {
+            CustomNode insertedNode = nodes[source.id];
+
+            // On ajoute les arcs partant du noeuds (via les successeurs)
+            foreach(CustomEdge edge in source.successors.Values)
+            {
+                if (!insertedNode.successors.ContainsKey(edge.dest.id))
+                {
+                    CustomNode sourceNode = nodes[edge.source.id];
+                    CustomNode destNode = nodes[edge.dest.id];
+
+                    insertedNode.successors.Add(edge.dest.id, new CustomEdge() { name = edge.name, source = sourceNode, dest = destNode });
+                }
+
+                CustomEdge insertedEdge = insertedNode.successors[edge.dest.id];
+
+                insertedEdge.inSecondGraph = true;
+            }
+        }
+
 
         /// <summary>
         /// Fusionne 2 graphe en un seul afin de pouvoir comparer ces deux graphes dans un seul
+        /// 
+        /// On part du premier graphe dans lequel on ajoutes les noeuds et les arcs du second graphe (passé en paramètres)
         /// </summary>
         /// <param name="graph">Graphe avec lequel fusionner</param>
         /// <returns>CustomGraph résultant de la fusion des 2 graphes</returns>
@@ -109,12 +157,32 @@ namespace VisualisationHeuristique.Tools
         {
             CustomGraph merge_result = this;
 
+            // On indique que tous ces attributs sont présents dans le premier graphe
+            foreach(CustomNode node in merge_result.nodes.Values)
+            {
+                node.in_first_graph = true;
+
+                foreach(CustomEdge edge in node.successors.Values)
+                {
+                    edge.inFirstGraph = true;
+                }
+                foreach(CustomEdge edge in node.predecessors.Values)
+                {
+                    edge.inFirstGraph = true;
+                }
+            }
+
+            // On ajoute tous les noeuds du graphe passé en paramètre dans le graphe résultant de la fusion
             foreach(CustomNode source in graph.nodes.Values)
             {
-                foreach(CustomEdge link in source.successors.Values)
-                {
-                    merge_result.addMergeEdge(link.source.id, link.dest.id, link.name);
-                }
+                merge_result.addMergedNode(source);
+            }
+
+            // On ajoutes tous les arcs de charque noeuds dans le graphe résultant de la fusion
+            // On ajoute les arcs après afin de s'assurer que les noeuds soient bien tous présent dans le graphe
+            foreach(CustomNode source in graph.nodes.Values)
+            {
+                merge_result.addMergedEdges(source);
             }
 
             return merge_result;
@@ -122,11 +190,12 @@ namespace VisualisationHeuristique.Tools
 
 
         /// <summary>
-        /// 
+        /// Retourne un graph MSAGL permattant l'affichage
+        /// Appelle la bonne méthode en fonction des paramètres d'affichage
         /// </summary>
-        /// <param name="only_visited"></param>
-        /// <param name="grouped"></param>
-        /// <returns></returns>
+        /// <param name="only_visited">Affiché seulement les noeuds visités</param>
+        /// <param name="grouped">Affiché les noeuds non visités de façon groupé</param>
+        /// <returns>Graph MSAGL</returns>
         public Graph getVisualGraph(bool only_visited, bool grouped)
         {
             Graph graph;
@@ -167,7 +236,7 @@ namespace VisualisationHeuristique.Tools
                     CustomNode dest = link.dest;
 
                     // Si l'on ne veut afficher que les noeuds visités
-                    if (only_visited && !dest.visited)
+                    if (only_visited && !dest.visited && !dest.visited_second)
                     {
                         continue;
                     }
@@ -182,7 +251,7 @@ namespace VisualisationHeuristique.Tools
                     dest.styleNode(msagl_dest_node, cmap);
 
                     // On change le style de l'arc en fonction des noeuds de départs et d'arrivés
-                    styleEdge(link, msagl_edge);
+                    link.styleEdge(msagl_edge);
                 }
             }
 
@@ -229,49 +298,19 @@ namespace VisualisationHeuristique.Tools
                     if (dest.in_selected_path)
                     {
                         dest.styleNode(msagl_dest_node, cmap);
-                        styleEdge(edge, msagl_edge);
+                        edge.styleEdge(msagl_edge);
 
                         queue.Enqueue(dest); // On ajoute le noeuds dans la file pour le traiter par la suite
                     }
                     else
                     {
-                        dest.styleNodeGrouped(msagl_dest_node, cmap);
-                        styleEdge(edge, msagl_edge);
+                        dest.styleNode(msagl_dest_node, cmap, true);
+                        edge.styleEdge(msagl_edge);
                     }
                 }
             }
 
             return graph;
-        }
-
-        /// <summary>
-        /// Change le style d'un arc MSAGL en fonction des deux noeuds qu'il relie
-        /// </summary>
-        /// <param name="source">Noeud de départ de l'arc</param>
-        /// <param name="dest">Noeud de destination de l'arc</param>
-        /// <param name="edge">Arc MSAGL dont l'on veut changer le style</param>
-        private void styleEdge(CustomEdge cedge, Edge edge)
-        {
-            edge.Attr.LineWidth = 0.1;
-            edge.Attr.ArrowheadLength = 1;
-
-            // Si les 2 noeuds de l'arc font parti du chemin final
-            if(cedge.source.in_selected_path && cedge.dest.in_selected_path)
-            {
-                edge.Attr.LineWidth = 1.5;
-                edge.Attr.Color = Color.Red;
-                //edge.LabelText = (dest.heuristic_value - source.heuristic_value).ToString();
-            }
-
-            if(cedge.source.visited && cedge.dest.visited)
-            {
-                edge.LabelText = cedge.name;
-            }
-            
-            if(cedge.inBothGraph)
-            {
-                edge.Attr.Color = Color.Green;
-            }
         }
 
         /// <summary>

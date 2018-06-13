@@ -104,27 +104,49 @@ namespace VisualisationHeuristique.Tools
             node.Attr.Shape = Shape.Circle;
             node.Attr.LabelMargin = 0;
             node.Attr.LineWidth = 0.2;
+            node.LabelText = null;
 
-            if(visited)
+            if (visited)
             {
                 node.Attr.FillColor = cmap.getColor(heuristic_value);
             }
             else
             {
                 node.Attr.FillColor = Color.White;
-                node.LabelText = null;
             }
         }
 
-        
+
         /// <summary>
-        /// Style classique pour les noeuds du graphe
+        /// Fonction permettant de styliser les noeuds MSAGL en fonction des attributs du noeuds
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
         /// <param name="cmap"></param>
-        public void styleNode(Node node, ColorMap cmap)
+        public void styleNode(Node node, ColorMap cmap, bool grouped = false)
         {
             defaultNodeStyle(node, cmap);
+
+            if(grouped)
+            {
+                styleNodeGrouped(node);                    
+            }
+            else if(this.mergedNode())
+            {
+                styleNodeMerged(node);
+            }
+            else
+            {
+                styleNodeClassic(node);
+            }
+            
+        }
+
+        /// <summary>
+        /// Style classique pour un noeuds MSAGL
+        /// </summary>
+        /// <param name="node">Noeuds MSAGL à styliser</param>
+        private void styleNodeClassic(Node node)
+        {
             node.Attr.Tooltip = getTooltip();
 
             if (visited)
@@ -137,13 +159,9 @@ namespace VisualisationHeuristique.Tools
         /// Style pour les noeuds grouper, ces noeuds contienent plusieurs noeuds
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
-        /// <param name="cmap"></param>
-        /// <param name="nodeSize">Nombre de noeuds dans ce noeuds grouper</param>
-        public void styleNodeGrouped(Node node, ColorMap cmap)
+        private void styleNodeGrouped(Node node)
         {
             int nodeSize = getNumberChildren() + 1;
-
-            defaultNodeStyle(node, cmap);
 
             string groupedTooltip = "Nombre de noeuds : " + nodeSize.ToString();
             groupedTooltip += "\nHeuristique max : " + childsMaxHeuristic().ToString();
@@ -176,10 +194,64 @@ namespace VisualisationHeuristique.Tools
         }
 
 
+        /*
+         *  Les attributs et méthodes ci-dessous ne sont utilisé quand dans le cas de la fusion entre 2 graphes
+         */
 
-        /// <summary>
-        /// Les attributs suivants ne sont utilisé que dans le cas d'une fusion entre 2 graphes
-        /// </summary>
+        private void styleNodeMerged(Node node)
+        {
+            node.Attr.Tooltip = getTooltipMerged();
+
+            if (this.visitedAnyGraph())
+            {
+                if (visitedBothGraph())
+                {
+                    node.LabelText = order_visited.ToString() + "-" + order_visited_second.ToString();
+                }
+                else if(visited)
+                {
+                    node.LabelText = order_visited.ToString();
+                }
+                else
+                {
+                    node.LabelText = order_visited_second.ToString();
+                }
+            }
+        }
+
+        private string getTooltipMerged()
+        {
+            string tooltip = "";
+            tooltip += "Node id : " + id;
+
+            tooltip += "\n";
+
+            if(visited)
+            {
+                tooltip += "\n" + "Heuristique value 1 : " + heuristic_value.ToString();
+                tooltip += "\n" + "Ordre visite 1 : " + order_visited.ToString();
+            }
+            else
+            {
+                tooltip += "\n" + "Non visité graphe 1";
+            }
+
+            tooltip += "\n";
+
+            if(visited_second)
+            {
+                tooltip += "\n" + "Heuristique value 2 : " + heuristic_value_second.ToString();
+                tooltip += "\n" + "Ordre visite 2 : " + order_visited_second.ToString();
+            }
+            else
+            {
+                tooltip += "\n" + "Non visité graphe 2";
+            }
+            
+
+            return tooltip;
+        }
+
         public bool in_first_graph { get; set; }
         public bool in_second_graph { get; set; }
 
@@ -189,5 +261,25 @@ namespace VisualisationHeuristique.Tools
 
         public int order_visited_second { get; set; }
         public int order_discovered_second { get; set; }
+
+        private bool inBothGraph()
+        {
+            return in_first_graph && in_second_graph;
+        }
+
+        private bool mergedNode()
+        {
+            return in_first_graph || in_second_graph;
+        }
+
+        private bool visitedAnyGraph()
+        {
+            return visited || visited_second;
+        }
+
+        private bool visitedBothGraph()
+        {
+            return visited_second && visited;
+        }
     }
 }

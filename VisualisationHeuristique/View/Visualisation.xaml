@@ -38,19 +38,21 @@
                 <TextBlock Text="Choix du graphe secondaire :" VerticalAlignment="Center" Margin="5 20 0 0"/>
                 <ComboBox x:Name="selectedSecondaryFile" Margin="5 0" />
 
-                <GroupBox Header="Affichage des noeuds" Margin="5" Padding="5, 10, 5, 5">
-                    <StackPanel Orientation="Vertical">
-                        <RadioButton GroupName="secondGraphNodes">Tous</RadioButton>
-                        <RadioButton GroupName="secondGraphNodes" x:Name="secondGraphVisitedNodes">Visités</RadioButton>
-                    </StackPanel>
-                </GroupBox>
+                <StackPanel x:Name="radioSecond">
+                    <GroupBox Header="Affichage des noeuds" Margin="5" Padding="5, 10, 5, 5">
+                        <StackPanel Orientation="Vertical">
+                            <RadioButton GroupName="secondGraphNodes">Tous</RadioButton>
+                            <RadioButton GroupName="secondGraphNodes" x:Name="secondGraphVisitedNodes">Visités</RadioButton>
+                        </StackPanel>
+                    </GroupBox>
 
-                <GroupBox Header="Grouper les noeuds" Margin="5" Padding="5, 10, 5, 5">
-                    <StackPanel Orientation="Horizontal">
-                        <RadioButton GroupName="secondGraphGroupNodes" x:Name="secondGraphGroupNodes" Padding="5 0">Oui</RadioButton>
-                        <RadioButton GroupName="secondGraphGroupNodes">Non</RadioButton>
-                    </StackPanel>
-                </GroupBox>
+                    <GroupBox Header="Grouper les noeuds" Margin="5" Padding="5, 10, 5, 5">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton GroupName="secondGraphGroupNodes" x:Name="secondGraphGroupNodes" Padding="5 0">Oui</RadioButton>
+                            <RadioButton GroupName="secondGraphGroupNodes">Non</RadioButton>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
             </StackPanel>
 
             <Button Width="60" Margin="0 15 0 0" Click="calculer_Clicked">Calculer</Button>
