@@ -96,7 +96,9 @@ namespace VisualisationHeuristique
             {
                 CustomGraph graphe2 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedSecondaryFile.SelectedItem.ToString());
 
-                viewer1.Graph = graphe1.merge(graphe2).getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
+                CustomGraphMerged merged_graph = new CustomGraphMerged(graphe1, graphe2);
+
+                viewer1.Graph = merged_graph.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
             }
             else if((bool)twoGraphs.IsChecked) // Si on veut afficher 2 graphes cote à cote
             {

@@ -53,7 +53,34 @@ namespace VisualisationHeuristique.Tools
 
             foreach(CustomEdge edge in successors.Values)
             {
-                childs += edge.dest.getNumberChildren(visited) + 1;
+                if(!edge.dest.in_selected_path)
+                {
+                    childs += edge.dest.getNumberChildren(visited) + 1;
+                }
+            }
+
+            return childs;
+        }
+
+        /// <summary>
+        /// Compte récursivement le nombre de fils visités de ce noeud
+        /// </summary>
+        /// <param name="visited">Collection des noeuds déjà visités afin d'eviter les boucle infinies en cas de cylce</param>
+        /// <returns>Nombre de successeur visité du noeuds</returns>
+        protected int getNumberVisitedChildren(HashSet<string> visited)
+        {
+            int childs = 0;
+
+            // Permet de contrer les cycles dans les graphes
+            if (visited.Contains(this.id)) { return 0; }
+            visited.Add(this.id);
+
+            foreach (CustomEdge edge in successors.Values)
+            {
+                if (edge.dest.visited && !edge.dest.in_selected_path)
+                {
+                    childs += edge.dest.getNumberVisitedChildren(visited) + 1;
+                }
             }
 
             return childs;
@@ -74,7 +101,7 @@ namespace VisualisationHeuristique.Tools
 
             foreach (CustomEdge edge in successors.Values)
             {
-                if(edge.dest.visited)
+                if(edge.dest.visited && !edge.dest.in_selected_path)
                 {
                     heuristicMin = Math.Min(edge.dest.childsMinHeuristic(visited), heuristicMin);
                 }
@@ -98,7 +125,7 @@ namespace VisualisationHeuristique.Tools
 
             foreach (CustomEdge edge in successors.Values)
             {
-                if (edge.dest.visited)
+                if (edge.dest.visited && !edge.dest.in_selected_path)
                 {
                     heuristicMax = Math.Max(edge.dest.childsMaxHeuristic(visited), heuristicMax);
                 }
@@ -148,7 +175,7 @@ namespace VisualisationHeuristique.Tools
             }
             else
             {
-                styleNodeClassic(node);
+                styleNodeClassic(node, cmap);
             }
             
         }
@@ -157,7 +184,7 @@ namespace VisualisationHeuristique.Tools
         /// Style classique pour un noeuds MSAGL
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
-        protected virtual void styleNodeClassic(Node node)
+        protected virtual void styleNodeClassic(Node node, ColorMap cmap)
         {
             node.Attr.Tooltip = getTooltip();
 
@@ -176,6 +203,7 @@ namespace VisualisationHeuristique.Tools
             int nodeSize = getNumberChildren(new HashSet<string>()) + 1;
 
             string groupedTooltip = "Nombre de noeuds : " + nodeSize.ToString();
+            groupedTooltip += "\nNombre de noeuds visités : " + (getNumberVisitedChildren(new HashSet<string>()) + 1).ToString();
             groupedTooltip += "\nHeuristique max : " + childsMaxHeuristic(new HashSet<string>()).ToString();
             groupedTooltip += "\nHeuristique min : " + childsMinHeuristic(new HashSet<string>()).ToString();
 
@@ -198,6 +226,7 @@ namespace VisualisationHeuristique.Tools
             if(visited)
             {
                 tooltip += "\n" + "Heuristique value : " + heuristic_value.ToString();
+                tooltip += "\n" + "Real value : " + real_final_value.ToString();
             }
 
             tooltip += "\n" + "Ordre de découverte : " + order_discovered.ToString();

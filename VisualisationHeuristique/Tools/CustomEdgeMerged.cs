@@ -100,7 +100,7 @@ namespace VisualisationHeuristique.Tools
             CustomNodeMerged merged_source = (CustomNodeMerged)source;
             CustomNodeMerged merged_dest = (CustomNodeMerged)dest;
 
-            return merged_source.in_selected_path_second && merged_source.in_selected_path_second && inSecondGraph;
+            return merged_source.in_selected_path_second && merged_dest.in_selected_path_second && inSecondGraph;
         }
     }
 }

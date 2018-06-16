@@ -94,7 +94,7 @@ namespace VisualisationHeuristique.Tools
         /// L'affichage d'un noeuds de fusion est différent
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
-        protected override void styleNodeClassic(Node node)
+        protected override void styleNodeClassic(Node node, ColorMap cmap)
         {
             node.Attr.Tooltip = getTooltip();
 
@@ -103,14 +103,17 @@ namespace VisualisationHeuristique.Tools
                 if (isVisitedBoth())
                 {
                     node.LabelText = order_visited.ToString() + "-" + order_visited_second.ToString();
+                    //node.Attr.FillColor = cmap.getColor(heuristic_value);
                 }
                 else if (visited)
                 {
                     node.LabelText = order_visited.ToString();
+                    //node.Attr.FillColor = cmap_first.getColor(heuristic_value);
                 }
                 else
                 {
                     node.LabelText = order_visited_second.ToString();
+                    //node.Attr.FillColor = cmap_first.getColor(heuristic_value);
                 }
             }
         }
@@ -123,6 +126,7 @@ namespace VisualisationHeuristique.Tools
         {
             string tooltip = "";
             tooltip += "Node id : " + id;
+            tooltip += "Real final value : " + real_final_value.ToString();
 
             tooltip += "\n";
 

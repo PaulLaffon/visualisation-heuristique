@@ -1,4 +1,5 @@
 ﻿using Microsoft.Msagl.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +15,7 @@ namespace VisualisationHeuristique.Tools
         /// </summary>
         public Dictionary<string, CustomNode> nodes { get; }
 
-        private CustomNode root; 
+        public CustomNode root { get; private set; } 
 
         /// <summary>
         /// Constructeur
@@ -58,107 +59,6 @@ namespace VisualisationHeuristique.Tools
             dest.predecessors.Add(source_id, new CustomEdge() { name = edge_name, source = source, dest = dest });
         }
 
-        /// <summary>
-        /// Ajoute le noeud passé en paramètre dans le graphe courrant
-        /// Est utilisé dans le cas de la fusion entre 2 graphes
-        /// </summary>
-        /// <param name="node">Node à ajouter au gaphe courrant</param>
-        /// <param name="second_graph">Boolean qui indique si c'est un noeuds du second graphe</param>
-        private void addMergedNode(CustomNode node, bool second_graph)
-        {
-            if(!nodes.ContainsKey(node.id))
-            {
-                nodes.Add(node.id, new CustomNodeMerged(node.id));
-            }
-
-            CustomNodeMerged insertedNode = (CustomNodeMerged)nodes[node.id];
-            insertedNode.initFromNode(node, second_graph);
-
-            // Si c'est le premier noeud qu'on ajoute, c'est la racine
-            if (nodes.Values.Count == 1)
-            {
-                root = insertedNode;
-            }
-        }
-
-
-        /// <summary>
-        /// Ajoute tous les arcs du noeuds passé en paramètre dans le graphe courrant
-        /// Est utilisé dans le cas de la fusion entre 2 graphes
-        /// 
-        /// TODO : Ajouté aussi les predécesseurs, pour l'instant n'ajoute que les successeurs
-        /// </summary>
-        /// <param name="source">Noeud dont on souhaite ajouter tous les arcs</param>
-        /// <param name="second_graph">Boolean qui indique si l'arc provient deu deuxième graphe</param>
-        private void addMergedEdges(CustomNode source, bool second_graph)
-        {
-            CustomNode insertedNode = nodes[source.id];
-
-            // On ajoute les arcs partant du noeuds (via les successeurs)
-            foreach(CustomEdge edge in source.successors.Values)
-            {
-                if (!insertedNode.successors.ContainsKey(edge.dest.id))
-                {
-                    CustomNode sourceNode = nodes[edge.source.id];
-                    CustomNode destNode = nodes[edge.dest.id];
-
-                    insertedNode.successors.Add(edge.dest.id, new CustomEdgeMerged() { name = edge.name, source = sourceNode, dest = destNode });
-                }
-
-                CustomEdgeMerged insertedEdge = (CustomEdgeMerged)insertedNode.successors[edge.dest.id];
-
-                if(second_graph)
-                {
-                    insertedEdge.inSecondGraph = true;
-                }
-                else
-                {
-                    insertedEdge.inFirstGraph = true;
-                }
-                
-            }
-        }
-
-
-        /// <summary>
-        /// Fusionne 2 graphe en un seul afin de pouvoir comparer ces deux graphes dans un seul
-        /// 
-        /// On part du premier graphe dans lequel on ajoutes les noeuds et les arcs du second graphe (passé en paramètres)
-        /// </summary>
-        /// <param name="graph">Graphe avec lequel fusionner</param>
-        /// <returns>CustomGraph résultant de la fusion des 2 graphes</returns>
-        public CustomGraph merge(CustomGraph graph)
-        {
-            CustomGraph merge_result = new CustomGraph();
-
-            // On ajoute les noeuds du premier graphes
-            merge_result.addMergedNode(this.root, false);
-            foreach(CustomNode node in this.nodes.Values)
-            {
-                merge_result.addMergedNode(node, false);
-            }
-
-            // On ajoute les arc du premire graphes
-            foreach(CustomNode source in this.nodes.Values)
-            {
-                merge_result.addMergedEdges(source, false);
-            }
-
-            // On ajoute tous les noeuds du graphe passé en paramètre dans le graphe résultant de la fusion
-            foreach(CustomNode source in graph.nodes.Values)
-            {
-                merge_result.addMergedNode(source, true);
-            }
-
-            // On ajoutes tous les arcs de charque noeuds dans le graphe résultant de la fusion
-            // On ajoute les arcs après afin de s'assurer que les noeuds soient bien tous présent dans le graphe
-            foreach(CustomNode source in graph.nodes.Values)
-            {
-                merge_result.addMergedEdges(source, true);
-            }
-
-            return merge_result;
-        }
 
 
         /// <summary>
@@ -235,53 +135,56 @@ namespace VisualisationHeuristique.Tools
         /// Retourne un Graph MSAGL avec les noeuds qui ne sont pas dans selected_path groupés
         /// </summary>
         /// <param name="only_visited">Inclure seulement les noeuds visité dans le visuel</param>
+        /// <param name="group_level">A partir de quel niveau de profondeur du selected path on doit grouper les noeuds</param>
         /// <returns>Graph MSAGL pouvant être afficher dans la vue</returns>
-        private Graph getVisualGraphGrouped(bool only_visited)
+        private Graph getVisualGraphGrouped(bool only_visited, int group_level = 0)
         {
             Graph graph = new Graph();
             ColorMap cmap = new ColorMap(Color.Yellow, Color.Red, heuristicMax(), heuristicMin());
 
-            // Parcours en largeur du graph pour afficher seulement les noeuds dans le selected path
-            // Les autres noeuds sont groupés en un seul noeuds
+
             HashSet<string> visited = new HashSet<string>();
-            Queue<CustomNode> queue = new Queue<CustomNode>();
-            queue.Enqueue(root);
+
+            // Parcours en largeur du graph pour afficher seulement les noeuds à un certains niveau de distance du selected path
+            // Les autres noeuds sont groupés en un seul noeuds
+            // L'entier dans le tuple correspond au niveau de distance du selected path
+            Queue<Tuple<CustomNode, int> > queue = new Queue<Tuple<CustomNode, int> >();
+            queue.Enqueue(new Tuple<CustomNode, int>(root, 0));
 
             while(queue.Any())
             {
-                CustomNode actu = queue.Dequeue();
+                Tuple<CustomNode, int> tuple = queue.Dequeue();
+                CustomNode actu = tuple.Item1;
+                int profondeur = tuple.Item2;
 
                 if(visited.Contains(actu.id)) { continue; }
                 visited.Add(actu.id);
+
+                Node msagl_source_node = graph.AddNode(actu.id);
+
+                actu.styleNode(msagl_source_node, cmap, profondeur == group_level);
+
 
                 foreach(CustomEdge edge in actu.successors.Values)
                 {
                     CustomNode dest = edge.dest;
 
-                    // Si l'on ne veut afficher que les noeuds visités
-                    if (only_visited && !dest.isVisited())
+                    if(only_visited && !dest.isVisited()) { continue; }
+
+                    // On ajoute que les noeuds du selected path ou avec un profondeur inférieur à la profondeur max
+                    if(dest.in_selected_path || profondeur < group_level)
                     {
-                        continue;
-                    }
+                        Edge msagl_edge = graph.AddEdge(actu.id, dest.id);
 
-                    Edge msagl_edge = graph.AddEdge(actu.id, dest.id);
-
-                    Node msagl_source_node = msagl_edge.SourceNode;
-                    Node msagl_dest_node = msagl_edge.TargetNode;
-
-                    actu.styleNode(msagl_source_node, cmap);
-
-                    if (dest.inSelectedPath())
-                    {
-                        dest.styleNode(msagl_dest_node, cmap);
                         edge.styleEdge(msagl_edge);
+                        int next_profondeur = profondeur + 1;
 
-                        queue.Enqueue(dest); // On ajoute le noeuds dans la file pour le traiter par la suite
-                    }
-                    else
-                    {
-                        dest.styleNode(msagl_dest_node, cmap, true);
-                        edge.styleEdge(msagl_edge);
+                        if(dest.in_selected_path)
+                        {
+                            next_profondeur = 0;
+                        }
+
+                        queue.Enqueue(new Tuple<CustomNode, int>(dest, next_profondeur));
                     }
                 }
             }
