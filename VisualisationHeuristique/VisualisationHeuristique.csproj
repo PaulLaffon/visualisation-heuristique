@@ -69,8 +69,10 @@
     </Compile>
     <Compile Include="Tools\ColorMap.cs" />
     <Compile Include="Tools\CustomEdge.cs" />
+    <Compile Include="Tools\CustomEdgeMerged.cs" />
     <Compile Include="Tools\CustomGraph.cs" />
     <Compile Include="Tools\CustomNode.cs" />
+    <Compile Include="Tools\CustomNodeMerged.cs" />
     <Compile Include="Tools\JsonGraphProvider.cs" />
     <Compile Include="View\Visualisation.xaml.cs">
       <DependentUpon>Visualisation.xaml</DependentUpon>

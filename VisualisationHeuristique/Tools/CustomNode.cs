@@ -41,14 +41,19 @@ namespace VisualisationHeuristique.Tools
         /// <summary>
         /// Compte récursivement le nombre de fils de ce noeuds
         /// </summary>
+        /// <param name="visited">Collection des noeuds déjà visités afin d'eviter les boucle infinies en cas de cylce</param>
         /// <returns>Nombre de successeur du noeuds</returns>
-        private int getNumberChildren()
+        protected int getNumberChildren(HashSet<string> visited)
         {
             int childs = 0;
-            
+
+            // Permet de contrer les cycles dans les graphes
+            if(visited.Contains(this.id)) { return 0; }
+            visited.Add(this.id);
+
             foreach(CustomEdge edge in successors.Values)
             {
-                childs += edge.dest.getNumberChildren() + 1;
+                childs += edge.dest.getNumberChildren(visited) + 1;
             }
 
             return childs;
@@ -57,16 +62,21 @@ namespace VisualisationHeuristique.Tools
         /// <summary>
         /// Recherche la valeur minimale de l'heuristique des noeuds fils
         /// </summary>
+        /// <param name="visited">Collection des noeuds déjà visités afin d'eviter les boucle infinies en cas de cylce</param>
         /// <returns>Valeur minimale de l'heuristique</returns>
-        private float childsMinHeuristic()
+        protected float childsMinHeuristic(HashSet<string> visited)
         {
             float heuristicMin = heuristic_value;
 
-            foreach(CustomEdge edge in successors.Values)
+            // Permet de contrer les cycles dans les graphes
+            if (visited.Contains(this.id)) { return heuristicMin; }
+            visited.Add(this.id);
+
+            foreach (CustomEdge edge in successors.Values)
             {
                 if(edge.dest.visited)
                 {
-                    heuristicMin = Math.Min(edge.dest.childsMinHeuristic(), heuristicMin);
+                    heuristicMin = Math.Min(edge.dest.childsMinHeuristic(visited), heuristicMin);
                 }
             }
 
@@ -76,16 +86,21 @@ namespace VisualisationHeuristique.Tools
         /// <summary>
         /// Recherche la valeur maximale de l'heurtisque des noeuds fils
         /// </summary>
+        /// <param name="visited">Collection des noeuds déjà visités afin d'eviter les boucle infinies en cas de cylce</param>
         /// <returns></returns>
-        private float childsMaxHeuristic()
+        protected float childsMaxHeuristic(HashSet<string> visited)
         {
             float heuristicMax = heuristic_value;
+
+            // Permet de contrer les cycles dans les graphes
+            if (visited.Contains(this.id)) { return heuristicMax; }
+            visited.Add(this.id);
 
             foreach (CustomEdge edge in successors.Values)
             {
                 if (edge.dest.visited)
                 {
-                    heuristicMax = Math.Max(edge.dest.childsMaxHeuristic(), heuristicMax);
+                    heuristicMax = Math.Max(edge.dest.childsMaxHeuristic(visited), heuristicMax);
                 }
             }
 
@@ -99,7 +114,7 @@ namespace VisualisationHeuristique.Tools
         /// </summary>
         /// <param name="node">Noeuds MSAGL correspondant au CustomNode dont on change le style</param>
         /// <param name="cmap">Colormap pour appliquer le stype au noeuds</param>
-        private void defaultNodeStyle(Node node, ColorMap cmap)
+        protected void defaultNodeStyle(Node node, ColorMap cmap)
         {
             node.Attr.Shape = Shape.Circle;
             node.Attr.LabelMargin = 0;
@@ -121,7 +136,8 @@ namespace VisualisationHeuristique.Tools
         /// Fonction permettant de styliser les noeuds MSAGL en fonction des attributs du noeuds
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
-        /// <param name="cmap"></param>
+        /// <param name="cmap">ColorMap à utiliser pour donner la couleur</param>
+        /// <param name="grouped">Boolean qui indique que c'est un noeuds groupé</param>
         public void styleNode(Node node, ColorMap cmap, bool grouped = false)
         {
             defaultNodeStyle(node, cmap);
@@ -129,10 +145,6 @@ namespace VisualisationHeuristique.Tools
             if(grouped)
             {
                 styleNodeGrouped(node);                    
-            }
-            else if(this.mergedNode())
-            {
-                styleNodeMerged(node);
             }
             else
             {
@@ -145,7 +157,7 @@ namespace VisualisationHeuristique.Tools
         /// Style classique pour un noeuds MSAGL
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
-        private void styleNodeClassic(Node node)
+        protected virtual void styleNodeClassic(Node node)
         {
             node.Attr.Tooltip = getTooltip();
 
@@ -159,13 +171,13 @@ namespace VisualisationHeuristique.Tools
         /// Style pour les noeuds grouper, ces noeuds contienent plusieurs noeuds
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
-        private void styleNodeGrouped(Node node)
+        protected void styleNodeGrouped(Node node)
         {
-            int nodeSize = getNumberChildren() + 1;
+            int nodeSize = getNumberChildren(new HashSet<string>()) + 1;
 
             string groupedTooltip = "Nombre de noeuds : " + nodeSize.ToString();
-            groupedTooltip += "\nHeuristique max : " + childsMaxHeuristic().ToString();
-            groupedTooltip += "\nHeuristique min : " + childsMinHeuristic().ToString();
+            groupedTooltip += "\nHeuristique max : " + childsMaxHeuristic(new HashSet<string>()).ToString();
+            groupedTooltip += "\nHeuristique min : " + childsMinHeuristic(new HashSet<string>()).ToString();
 
             node.Attr.Tooltip = groupedTooltip;
 
@@ -177,7 +189,7 @@ namespace VisualisationHeuristique.Tools
         /// Renvoie un texte décrivant le noeuds afin d'être utilisé dans le tooltip 
         /// </summary>
         /// <returns>string décrivant le noeud</returns>
-        private string getTooltip()
+        protected virtual string getTooltip()
         {
             string tooltip = "";
 
@@ -193,93 +205,22 @@ namespace VisualisationHeuristique.Tools
             return tooltip;
         }
 
-
-        /*
-         *  Les attributs et méthodes ci-dessous ne sont utilisé quand dans le cas de la fusion entre 2 graphes
-         */
-
-        private void styleNodeMerged(Node node)
+        /// <summary>
+        /// Indique si le noeuds a été visité
+        /// </summary>
+        /// <returns>Booleen</returns>
+        public virtual bool isVisited()
         {
-            node.Attr.Tooltip = getTooltipMerged();
-
-            if (this.visitedAnyGraph())
-            {
-                if (visitedBothGraph())
-                {
-                    node.LabelText = order_visited.ToString() + "-" + order_visited_second.ToString();
-                }
-                else if(visited)
-                {
-                    node.LabelText = order_visited.ToString();
-                }
-                else
-                {
-                    node.LabelText = order_visited_second.ToString();
-                }
-            }
+            return visited;
         }
 
-        private string getTooltipMerged()
+        /// <summary>
+        /// Indique si le noeuds est dans le chemin final
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool inSelectedPath()
         {
-            string tooltip = "";
-            tooltip += "Node id : " + id;
-
-            tooltip += "\n";
-
-            if(visited)
-            {
-                tooltip += "\n" + "Heuristique value 1 : " + heuristic_value.ToString();
-                tooltip += "\n" + "Ordre visite 1 : " + order_visited.ToString();
-            }
-            else
-            {
-                tooltip += "\n" + "Non visité graphe 1";
-            }
-
-            tooltip += "\n";
-
-            if(visited_second)
-            {
-                tooltip += "\n" + "Heuristique value 2 : " + heuristic_value_second.ToString();
-                tooltip += "\n" + "Ordre visite 2 : " + order_visited_second.ToString();
-            }
-            else
-            {
-                tooltip += "\n" + "Non visité graphe 2";
-            }
-            
-
-            return tooltip;
-        }
-
-        public bool in_first_graph { get; set; }
-        public bool in_second_graph { get; set; }
-
-        public bool visited_second { get; set; }
-        public bool in_selected_path_second { get; set; }
-        public float heuristic_value_second { get; set; }
-
-        public int order_visited_second { get; set; }
-        public int order_discovered_second { get; set; }
-
-        private bool inBothGraph()
-        {
-            return in_first_graph && in_second_graph;
-        }
-
-        private bool mergedNode()
-        {
-            return in_first_graph || in_second_graph;
-        }
-
-        private bool visitedAnyGraph()
-        {
-            return visited || visited_second;
-        }
-
-        private bool visitedBothGraph()
-        {
-            return visited_second && visited;
+            return in_selected_path;
         }
     }
 }
