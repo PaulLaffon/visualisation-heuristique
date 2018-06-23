@@ -53,7 +53,7 @@ namespace VisualisationHeuristique.Tools
 
             foreach(CustomEdge edge in successors.Values)
             {
-                if(!edge.dest.in_selected_path)
+                if(!edge.dest.inSelectedPath())
                 {
                     childs += edge.dest.getNumberChildren(visited) + 1;
                 }
@@ -77,7 +77,7 @@ namespace VisualisationHeuristique.Tools
 
             foreach (CustomEdge edge in successors.Values)
             {
-                if (edge.dest.visited && !edge.dest.in_selected_path)
+                if (edge.dest.isVisited() && !edge.dest.inSelectedPath())
                 {
                     childs += edge.dest.getNumberVisitedChildren(visited) + 1;
                 }
@@ -101,7 +101,7 @@ namespace VisualisationHeuristique.Tools
 
             foreach (CustomEdge edge in successors.Values)
             {
-                if(edge.dest.visited && !edge.dest.in_selected_path)
+                if(edge.dest.visited && !edge.dest.inSelectedPath())
                 {
                     heuristicMin = Math.Min(edge.dest.childsMinHeuristic(visited), heuristicMin);
                 }
@@ -125,7 +125,7 @@ namespace VisualisationHeuristique.Tools
 
             foreach (CustomEdge edge in successors.Values)
             {
-                if (edge.dest.visited && !edge.dest.in_selected_path)
+                if (edge.dest.visited && !edge.dest.inSelectedPath())
                 {
                     heuristicMax = Math.Max(edge.dest.childsMaxHeuristic(visited), heuristicMax);
                 }

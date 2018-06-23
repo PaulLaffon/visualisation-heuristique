@@ -80,7 +80,7 @@ namespace VisualisationHeuristique.Tools
         }
 
         /// <summary>
-        ///  Si le noeuds à été visité par les 2 graphes de fusion
+        ///  Si le noeuds à été visité par les 2 graphes provenant de la fusion
         /// </summary>
         /// <returns>Booleen</returns>
         private bool isVisitedBoth()
@@ -88,14 +88,17 @@ namespace VisualisationHeuristique.Tools
             return visited && visited_second;
         }
 
-
         /// <summary>
-        /// Surcharge la fonction de style classic d'un noeuds
-        /// L'affichage d'un noeuds de fusion est différent
+        /// Fonction pour styliser un noeuds dans un graphe provenant de la fusion de 2 graphes
         /// </summary>
         /// <param name="node">Noeuds MSAGL à styliser</param>
-        protected override void styleNodeClassic(Node node, ColorMap cmap)
+        /// <param name="cmap">Color map pour les noeuds ayant été visités par les 2 graphes</param>
+        /// <param name="cmap_first">Color map pour les noeuds ayant été visité seulement par le premier graphe</param>
+        /// <param name="cmap_second">Color map pour les noeuds ayant été visité seulement par le second graphe</param>
+        public void styleNodeMerged(Node node, ColorMap cmap, ColorMap cmap_first, ColorMap cmap_second)
         {
+            this.defaultNodeStyle(node, cmap);
+
             node.Attr.Tooltip = getTooltip();
 
             if (this.isVisited())
@@ -103,17 +106,61 @@ namespace VisualisationHeuristique.Tools
                 if (isVisitedBoth())
                 {
                     node.LabelText = order_visited.ToString() + "-" + order_visited_second.ToString();
-                    //node.Attr.FillColor = cmap.getColor(heuristic_value);
+                    node.Attr.FillColor = cmap.getColor(real_final_value);
                 }
                 else if (visited)
                 {
                     node.LabelText = order_visited.ToString();
-                    //node.Attr.FillColor = cmap_first.getColor(heuristic_value);
+                    node.Attr.FillColor = cmap_first.getColor(heuristic_value);
                 }
                 else
                 {
                     node.LabelText = order_visited_second.ToString();
-                    //node.Attr.FillColor = cmap_first.getColor(heuristic_value);
+                    node.Attr.FillColor = cmap_second.getColor(heuristic_value_second);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fonction pour styliser un noeuds dans un graphe provenant de la fusion de 2 graphes qui groupe plusieurs noeuds
+        /// </summary>
+        /// <param name="node">Noeuds MSAGL à styliser</param>
+        /// <param name="cmap">Color map pour les noeuds ayant été visités par les 2 graphes</param>
+        /// <param name="cmap_first">Color map pour les noeuds ayant été visité seulement par le premier graphe</param>
+        /// <param name="cmap_second">Color map pour les noeuds ayant été visité seulement par le second graphe</param>
+        public void styleNodeMergedGrouped(Node node, ColorMap cmap, ColorMap cmap_first, ColorMap cmap_second)
+        {
+            this.defaultNodeStyle(node, cmap);
+
+            int nodeSize = getNumberChildren(new HashSet<string>()) + 1;
+
+            string groupedTooltip = "Nombre de noeuds : " + nodeSize.ToString();
+            groupedTooltip += "\nNombre de noeuds visités : " + (getNumberVisitedChildren(new HashSet<string>()) + 1).ToString();
+            groupedTooltip += "\nHeuristique max : " + childsMaxHeuristic(new HashSet<string>()).ToString();
+            groupedTooltip += "\nHeuristique min : " + childsMinHeuristic(new HashSet<string>()).ToString();
+
+            node.Attr.Tooltip = groupedTooltip;
+
+            node.LabelText = "";
+            node.Attr.LabelMargin = (int)Math.Pow(nodeSize, 0.66) + 3;
+
+
+            if (this.isVisited())
+            {
+                if (isVisitedBoth())
+                {
+                    node.LabelText = order_visited.ToString() + "-" + order_visited_second.ToString();
+                    node.Attr.FillColor = cmap.getColor(real_final_value);
+                }
+                else if (visited)
+                {
+                    node.LabelText = order_visited.ToString();
+                    node.Attr.FillColor = cmap_first.getColor(heuristic_value);
+                }
+                else
+                {
+                    node.LabelText = order_visited_second.ToString();
+                    node.Attr.FillColor = cmap_second.getColor(heuristic_value_second);
                 }
             }
         }
@@ -126,7 +173,7 @@ namespace VisualisationHeuristique.Tools
         {
             string tooltip = "";
             tooltip += "Node id : " + id;
-            tooltip += "Real final value : " + real_final_value.ToString();
+            tooltip += "\nReal final value : " + real_final_value.ToString();
 
             tooltip += "\n";
 

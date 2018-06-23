@@ -2,6 +2,11 @@
 
 namespace VisualisationHeuristique.Tools
 {
+
+    /// <summary>
+    /// Classe qui hérite des arcs classique 
+    /// Implémente les arcs issuent de la fusion entre 2 graphes
+    /// </summary>
     class CustomEdgeMerged : CustomEdge
     {
 
@@ -21,9 +26,10 @@ namespace VisualisationHeuristique.Tools
         /// Style pour un arc d'un graphe fusionné depuis 2 graphes
         /// </summary>
         /// <param name="edge">Arc MSAGL dont l'on veut changer le style</param>
-        protected override void styleEdgeClassic(Edge edge)
+        /// <param name="edge_name">Booleen qui indique si on doit afficher le nom de l'arc</param>
+        protected override void styleEdgeClassic(Edge edge, bool edge_name)
         {
-            if (takenAnyGraph())
+            if (takenAnyGraph() && edge_name)
             {
                 edge.LabelText = this.name;
             }
@@ -41,7 +47,19 @@ namespace VisualisationHeuristique.Tools
             {
                 edge.Attr.Color = Color.Blue;
             }
-            else
+            else if(inSelectedPathFirst())
+            {
+                edge.Attr.Color = Color.Green;
+            }
+            else if(inBothGraph())
+            {
+                edge.Attr.Color = Color.Red;
+            }
+            else if(inSecondGraph)
+            {
+                edge.Attr.Color = Color.Blue;
+            }
+            else if(inFirstGraph)
             {
                 edge.Attr.Color = Color.Green;
             }
@@ -74,8 +92,8 @@ namespace VisualisationHeuristique.Tools
             CustomNodeMerged merged_source = (CustomNodeMerged)source;
             CustomNodeMerged merged_dest = (CustomNodeMerged)dest;
 
-            return (merged_source.in_selected_path && merged_dest.in_selected_path) || 
-                (merged_source.in_selected_path_second && merged_dest.in_selected_path_second);
+            return (merged_source.in_selected_path && merged_dest.in_selected_path && inFirstGraph) || 
+                (merged_source.in_selected_path_second && merged_dest.in_selected_path_second && inSecondGraph);
         }
 
         /// <summary>
@@ -101,6 +119,18 @@ namespace VisualisationHeuristique.Tools
             CustomNodeMerged merged_dest = (CustomNodeMerged)dest;
 
             return merged_source.in_selected_path_second && merged_dest.in_selected_path_second && inSecondGraph;
+        }
+
+        /// <summary>
+        /// Indique si le graphe est dans le chemin choisi du 1er graphe
+        /// </summary>
+        /// <returns></returns>
+        protected bool inSelectedPathFirst()
+        {
+            CustomNodeMerged merged_source = (CustomNodeMerged)source;
+            CustomNodeMerged merged_dest = (CustomNodeMerged)dest;
+
+            return merged_source.in_selected_path && merged_dest.in_selected_path && inFirstGraph;
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace VisualisationHeuristique.Tools
 {
     /// <summary>
-    /// Implemente une structure de graphe issue de la fusion de 2 graphe
+    /// Implemente une structure de graphe issue de la fusion de 2 graphes
     /// </summary>
     class CustomGraphMerged
     {
@@ -119,20 +119,22 @@ namespace VisualisationHeuristique.Tools
         /// Retourne un graph MSAGL permattant l'affichage
         /// Appelle la bonne méthode en fonction des paramètres d'affichage
         /// </summary>
-        /// <param name="only_visited">Affiché seulement les noeuds visités</param>
-        /// <param name="grouped">Affiché les noeuds non visités de façon groupé</param>
+        /// <param name="only_visited">Afficher seulement les noeuds visités</param>
+        /// <param name="grouped">Afficher les noeuds non visités de façon groupé</param>
+        /// <param name="edge_name">Afficher les nom des arcs dans la visualisation</param>
+        /// <param name="group_level">Niveau de groupement pour la visualisation groupée</param>
         /// <returns>Graph MSAGL</returns>
-        public Graph getVisualGraph(bool only_visited, bool grouped)
+        public Graph getVisualGraph(bool only_visited, bool grouped, bool edge_name, int group_level = 0)
         {
             Graph graph;
 
             if(grouped)
             {
-                graph = getVisualGraphGrouped(only_visited);
+                graph = getVisualGraphGrouped(only_visited, edge_name, group_level);
             }
             else
             {
-                graph = getVisualGraphClassic(only_visited);
+                graph = getVisualGraphClassic(only_visited, edge_name);
             }
 
             graph.LayoutAlgorithmSettings.EdgeRoutingSettings.EdgeRoutingMode = Microsoft.Msagl.Core.Routing.EdgeRoutingMode.StraightLine;
@@ -148,14 +150,17 @@ namespace VisualisationHeuristique.Tools
         /// Le Graph MSAGL peut ensuite être affiché dans la vue
         /// </summary>
         /// <param name="only_visited">Inclure seulement les noeuds visité dans le visuel</param>
+        /// <param name="edge_name">Afficher les nom des arcs dans la visualisation</param>
         /// <returns>Graph MSAGL pouvant être afficher dans la vue</returns>
-        private Graph getVisualGraphClassic(bool only_visited = false)
+        private Graph getVisualGraphClassic(bool only_visited, bool edge_name)
         {
             Graph graph = new Graph();
 
-            ColorMap cmap = new ColorMap(Color.Yellow, Color.Red, heuristicMax(), heuristicMin());
+            ColorMap cmap = new ColorMap(new Color(255, 255, 210, 210), Color.Red, realValueMax(), realValueMin());
+            ColorMap cmap_first = new ColorMap(new Color(255, 230, 255, 230), Color.Green, firstHeuristicMax(), firstheuristicMin());
+            ColorMap cmap_second = new ColorMap(new Color(255, 240, 240, 255), Color.Blue, secondHeuristicMax(), secondHeuristicMin());
 
-            foreach (CustomNode source in nodes.Values)
+            foreach (CustomNodeMerged source in nodes.Values)
             {
                 foreach (CustomEdge link in source.successors.Values)
                 {
@@ -172,12 +177,11 @@ namespace VisualisationHeuristique.Tools
                     Node msagl_source_node = msagl_edge.SourceNode;
                     Node msagl_dest_node = msagl_edge.TargetNode;
 
-                    // On change le style des noeuds de départs et d'arrivés
-                    source.styleNode(msagl_source_node, cmap);
-                    dest.styleNode(msagl_dest_node, cmap);
+                    source.styleNodeMerged(msagl_source_node, cmap, cmap_first, cmap_second);
+                    dest.styleNodeMerged(msagl_dest_node, cmap, cmap_first, cmap_second);
 
                     // On change le style de l'arc en fonction des noeuds de départs et d'arrivés
-                    link.styleEdge(msagl_edge);
+                    link.styleEdge(msagl_edge, edge_name);
                 }
             }
 
@@ -189,53 +193,66 @@ namespace VisualisationHeuristique.Tools
         /// Retourne un Graph MSAGL avec les noeuds qui ne sont pas dans selected_path groupés
         /// </summary>
         /// <param name="only_visited">Inclure seulement les noeuds visité dans le visuel</param>
+        /// <param name="edge_name">Afficher les nom des arcs dans la visualisation</param>
+        /// <param name="group_level">A partir de quel niveau de profondeur du selected path on doit grouper les noeuds</param>
         /// <returns>Graph MSAGL pouvant être afficher dans la vue</returns>
-        private Graph getVisualGraphGrouped(bool only_visited)
+        private Graph getVisualGraphGrouped(bool only_visited, bool edge_name, int group_level)
         {
             Graph graph = new Graph();
-            ColorMap cmap = new ColorMap(Color.Yellow, Color.Red, heuristicMax(), heuristicMin());
 
-            // Parcours en largeur du graph pour afficher seulement les noeuds dans le selected path
-            // Les autres noeuds sont groupés en un seul noeuds
+            ColorMap cmap = new ColorMap(new Color(255, 255, 210, 210), Color.Red, realValueMax(), realValueMin());
+            ColorMap cmap_first = new ColorMap(new Color(255, 230, 255, 230), Color.Green, firstHeuristicMax(), firstheuristicMin());
+            ColorMap cmap_second = new ColorMap(new Color(255, 240, 240, 255), Color.Blue, secondHeuristicMax(), secondHeuristicMin());
+
             HashSet<string> visited = new HashSet<string>();
-            Queue<CustomNodeMerged> queue = new Queue<CustomNodeMerged>();
-            queue.Enqueue(root);
+
+            // Parcours en largeur du graph pour afficher seulement les noeuds à un certains niveau de distance du selected path
+            // Les autres noeuds sont groupés en un seul noeuds
+            // L'entier dans le tuple correspond au niveau de distance du selected path
+            Queue<Tuple<CustomNodeMerged, int>> queue = new Queue<Tuple<CustomNodeMerged, int>>();
+            queue.Enqueue(new Tuple<CustomNodeMerged, int>(root, 0));
 
             while (queue.Any())
             {
-                CustomNodeMerged actu = queue.Dequeue();
+                Tuple<CustomNodeMerged, int> tuple = queue.Dequeue();
+                CustomNodeMerged actu = tuple.Item1;
+                int profondeur = tuple.Item2;
 
                 if (visited.Contains(actu.id)) { continue; }
                 visited.Add(actu.id);
+
+                Node msagl_source_node = graph.AddNode(actu.id);
+
+                if(profondeur == group_level)
+                {
+                    actu.styleNodeMergedGrouped(msagl_source_node, cmap, cmap_first, cmap_second);
+                }
+                else
+                {
+                    actu.styleNodeMerged(msagl_source_node, cmap, cmap_first, cmap_second);
+                }
+
 
                 foreach (CustomEdge edge in actu.successors.Values)
                 {
                     CustomNodeMerged dest = (CustomNodeMerged)edge.dest;
 
-                    // Si l'on ne veut afficher que les noeuds visités
-                    if (only_visited && !dest.isVisited())
+                    if (only_visited && !dest.isVisited()) { continue; }
+
+                    // On ajoute que les noeuds du selected path ou avec un profondeur inférieur à la profondeur max
+                    if (dest.inSelectedPath() || profondeur < group_level)
                     {
-                        continue;
-                    }
+                        Edge msagl_edge = graph.AddEdge(actu.id, dest.id);
 
-                    Edge msagl_edge = graph.AddEdge(actu.id, dest.id);
+                        edge.styleEdge(msagl_edge, edge_name);
+                        int next_profondeur = profondeur + 1;
 
-                    Node msagl_source_node = msagl_edge.SourceNode;
-                    Node msagl_dest_node = msagl_edge.TargetNode;
+                        if (dest.inSelectedPath())
+                        {
+                            next_profondeur = 0;
+                        }
 
-                    actu.styleNode(msagl_source_node, cmap);
-
-                    if (dest.inSelectedPath())
-                    {
-                        dest.styleNode(msagl_dest_node, cmap);
-                        edge.styleEdge(msagl_edge);
-
-                        queue.Enqueue(dest); // On ajoute le noeuds dans la file pour le traiter par la suite
-                    }
-                    else
-                    {
-                        dest.styleNode(msagl_dest_node, cmap, true);
-                        edge.styleEdge(msagl_edge);
+                        queue.Enqueue(new Tuple<CustomNodeMerged, int>(dest, next_profondeur));
                     }
                 }
             }
@@ -245,21 +262,41 @@ namespace VisualisationHeuristique.Tools
 
 
         /// <summary>
-        /// Retourne la valeur maximale de l'heuristique des noeuds visités dans le graphe
+        /// Retourne la valeur maximale de l'heuristique des noeuds visités dans le premier graphe
         /// </summary>
         /// <returns>Valeur maximale de l'heuristique</returns>
-        private float heuristicMax()
+        private float firstHeuristicMax()
         {
-            return nodes.Values.Max(n => n.heuristic_value);
+            return nodes.Values.Where(n => n.visited == true).Max(n => n.heuristic_value);
+        }
+
+        private float secondHeuristicMax()
+        {
+            return nodes.Values.Where(n => n.visited_second == true).Max(n => n.heuristic_value);
+        }
+
+        private float realValueMax()
+        {
+            return nodes.Values.Max(n => n.real_final_value);
         }
 
         /// <summary>
-        /// Retourne la valeur minimale de l'heuristique des noeuds visités dans le graphe
+        /// Retourne la valeur minimale de l'heuristique des noeuds visités dans le premier graphe
         /// </summary>
         /// <returns>Valeur minimale de l'heuristique</returns>
-        private float heuristicMin()
+        private float firstheuristicMin()
         {
-            return nodes.Values.Min(n => n.heuristic_value);
+            return nodes.Values.Where(n => n.visited == true).Min(n => n.heuristic_value);
+        }
+
+        private float secondHeuristicMin()
+        {
+            return nodes.Values.Where(n => n.visited_second == true).Min(n => n.heuristic_value);
+        }
+
+        private float realValueMin()
+        {
+            return nodes.Values.Min(n => n.real_final_value);
         }
     }
 }

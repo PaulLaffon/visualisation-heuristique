@@ -59,6 +59,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="View\Resources\IntSpinner.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Visualisation.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -75,6 +79,9 @@
     <Compile Include="Tools\CustomNode.cs" />
     <Compile Include="Tools\CustomNodeMerged.cs" />
     <Compile Include="Tools\JsonGraphProvider.cs" />
+    <Compile Include="View\Resources\IntSpinner.xaml.cs">
+      <DependentUpon>IntSpinner.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Visualisation.xaml.cs">
       <DependentUpon>Visualisation.xaml</DependentUpon>
       <SubType>Code</SubType>

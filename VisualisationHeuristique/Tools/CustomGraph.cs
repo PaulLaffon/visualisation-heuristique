@@ -65,20 +65,22 @@ namespace VisualisationHeuristique.Tools
         /// Retourne un graph MSAGL permattant l'affichage
         /// Appelle la bonne méthode en fonction des paramètres d'affichage
         /// </summary>
-        /// <param name="only_visited">Affiché seulement les noeuds visités</param>
-        /// <param name="grouped">Affiché les noeuds non visités de façon groupé</param>
+        /// <param name="only_visited">Afficher seulement les noeuds visités</param>
+        /// <param name="grouped">Afficher les noeuds non visités de façon groupé</param>
+        /// <param name="edge_name">Affciher le nom des arcs dans la visualisation</param>
+        /// <param name="group_level">Niveau de groupement pour l'affichage de noeuds groupés</param>
         /// <returns>Graph MSAGL</returns>
-        public Graph getVisualGraph(bool only_visited, bool grouped)
+        public Graph getVisualGraph(bool only_visited, bool grouped, bool edge_name, int group_level = 0)
         {
             Graph graph;
 
             if (grouped)
             {
-                graph = getVisualGraphGrouped(only_visited);
+                graph = getVisualGraphGrouped(only_visited, edge_name, group_level);
             }
             else
             {
-                graph = getVisualGraphClassic(only_visited);
+                graph = getVisualGraphClassic(only_visited, edge_name);
             }
 
             graph.LayoutAlgorithmSettings.EdgeRoutingSettings.EdgeRoutingMode = Microsoft.Msagl.Core.Routing.EdgeRoutingMode.StraightLine;
@@ -94,8 +96,9 @@ namespace VisualisationHeuristique.Tools
         /// Le Graph MSAGL peut ensuite être affiché dans la vue
         /// </summary>
         /// <param name="only_visited">Inclure seulement les noeuds visité dans le visuel</param>
+        /// <param name="edge_name">Indique si l'on doit afficher le nom de l'arc dans la visualisation</param>
         /// <returns>Graph MSAGL pouvant être afficher dans la vue</returns>
-        private Graph getVisualGraphClassic(bool only_visited = false)
+        private Graph getVisualGraphClassic(bool only_visited, bool edge_name)
         {
             Graph graph = new Graph();
 
@@ -123,7 +126,7 @@ namespace VisualisationHeuristique.Tools
                     dest.styleNode(msagl_dest_node, cmap);
 
                     // On change le style de l'arc en fonction des noeuds de départs et d'arrivés
-                    link.styleEdge(msagl_edge);
+                    link.styleEdge(msagl_edge, edge_name);
                 }
             }
 
@@ -135,9 +138,10 @@ namespace VisualisationHeuristique.Tools
         /// Retourne un Graph MSAGL avec les noeuds qui ne sont pas dans selected_path groupés
         /// </summary>
         /// <param name="only_visited">Inclure seulement les noeuds visité dans le visuel</param>
+        /// <param name="edge_name">Booléen qui indique si on doit afficher le nom de l'arc</param>
         /// <param name="group_level">A partir de quel niveau de profondeur du selected path on doit grouper les noeuds</param>
         /// <returns>Graph MSAGL pouvant être afficher dans la vue</returns>
-        private Graph getVisualGraphGrouped(bool only_visited, int group_level = 0)
+        private Graph getVisualGraphGrouped(bool only_visited, bool edge_name, int group_level)
         {
             Graph graph = new Graph();
             ColorMap cmap = new ColorMap(Color.Yellow, Color.Red, heuristicMax(), heuristicMin());
@@ -176,7 +180,7 @@ namespace VisualisationHeuristique.Tools
                     {
                         Edge msagl_edge = graph.AddEdge(actu.id, dest.id);
 
-                        edge.styleEdge(msagl_edge);
+                        edge.styleEdge(msagl_edge, edge_name);
                         int next_profondeur = profondeur + 1;
 
                         if(dest.in_selected_path)

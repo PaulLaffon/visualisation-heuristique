@@ -3,10 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VisualisationHeuristique"
+        xmlns:local="clr-namespace:VisualisationHeuristique.View"
+        xmlns:resources="clr-namespace:VisualisationHeuristique.View.Resources"
         mc:Ignorable="d"
         x:Name="RootWindow"
-        Title="MainWindow" Height="700" Width="900">
+        Title="Visualisation heuristique" Height="750" Width="1000">
     <DockPanel>
         <StackPanel DockPanel.Dock="Left" MinWidth="150" Background="WhiteSmoke">
             <GroupBox Header="Type affichage" Margin="5" Padding="5, 10, 5, 5">
@@ -17,7 +18,7 @@
                 </StackPanel>
             </GroupBox>
 
-            <TextBlock Text="Choix du graphe principal :" VerticalAlignment="Center" Margin="5 10 0 0"/>
+            <TextBlock Text="Choix du graphe principal :" VerticalAlignment="Center" Margin="5 10 0 0"  x:Name="principal"/>
             <ComboBox x:Name="selectedMainFile" Margin="5 0 5 5" />
 
             <GroupBox Header="Affichage des noeuds" Margin="5" Padding="5, 10, 5, 5">
@@ -28,14 +29,27 @@
             </GroupBox>
 
             <GroupBox Header="Grouper les noeuds" Margin="5" Padding="5, 10, 5, 5">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton GroupName="mainGraphGroupNodes" x:Name="mainGraphGroupNodes" Padding="5 0" Checked="mainGraphGroup_checked">Oui</RadioButton>
+                        <RadioButton GroupName="mainGraphGroupNodes" Checked="mainGraphGroup_checked">Non</RadioButton>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" x:Name="mainGraphGroupSelector">
+                        <TextBlock Text="Niveau de groupement :" VerticalAlignment="Center"/>
+                        <resources:IntSpinner x:Name="mainGraphGroupLevel" Value="1"></resources:IntSpinner>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Afficher le nom des arcs" Margin="5" Padding="5, 10, 5, 5">
                 <StackPanel Orientation="Horizontal">
-                    <RadioButton GroupName="mainGraphGroupNodes" x:Name="mainGraphGroupNodes" Padding="5 0">Oui</RadioButton>
-                    <RadioButton GroupName="mainGraphGroupNodes">Non</RadioButton>
+                    <RadioButton GroupName="mainGraphEdgeName" x:Name="mainGraphEdgeName" Padding="5 0" IsChecked="True">Oui</RadioButton>
+                    <RadioButton GroupName="mainGraphEdgeName">Non</RadioButton>
                 </StackPanel>
             </GroupBox>
 
             <StackPanel x:Name="secondGraph">
-                <TextBlock Text="Choix du graphe secondaire :" VerticalAlignment="Center" Margin="5 20 0 0"/>
+                <TextBlock Text="Choix du graphe secondaire :" VerticalAlignment="Center" Margin="5 20 0 0" x:Name="secondaire"/>
                 <ComboBox x:Name="selectedSecondaryFile" Margin="5 0" />
 
                 <StackPanel x:Name="radioSecond">
@@ -47,9 +61,22 @@
                     </GroupBox>
 
                     <GroupBox Header="Grouper les noeuds" Margin="5" Padding="5, 10, 5, 5">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton GroupName="secondGraphGroupNodes" x:Name="secondGraphGroupNodes" Padding="5 0" Checked="secondGraphGroup_checked">Oui</RadioButton>
+                                <RadioButton GroupName="secondGraphGroupNodes" Checked="secondGraphGroup_checked">Non</RadioButton>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="secondGraphGroupSelector">
+                                <TextBlock Text="Niveau de groupement :" VerticalAlignment="Center"/>
+                                <resources:IntSpinner x:Name="secondGraphhGroupLevel" Value="1"></resources:IntSpinner>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Afficher le nom des arcs" Margin="5" Padding="5, 10, 5, 5">
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton GroupName="secondGraphGroupNodes" x:Name="secondGraphGroupNodes" Padding="5 0">Oui</RadioButton>
-                            <RadioButton GroupName="secondGraphGroupNodes">Non</RadioButton>
+                            <RadioButton GroupName="secondGraphEdgeName" x:Name="secondGraphEdgeName" Padding="5 0" IsChecked="True">Oui</RadioButton>
+                            <RadioButton GroupName="secondGraphEdgeName">Non</RadioButton>
                         </StackPanel>
                     </GroupBox>
                 </StackPanel>

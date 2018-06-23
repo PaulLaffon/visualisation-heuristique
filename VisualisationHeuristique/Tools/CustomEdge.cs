@@ -24,7 +24,7 @@ namespace VisualisationHeuristique.Tools
         /// Indique si un arcs a vraiment été utilisé
         /// C'est à dire si sa source et destination ont été visités
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Booleen</returns>
         protected bool actuallyTaken()
         {
             return source.visited && dest.visited;
@@ -35,11 +35,11 @@ namespace VisualisationHeuristique.Tools
         /// Fonction permettant de styliser les arcs MSAGL en fonction des attributs de l'arc
         /// </summary>
         /// <param name="edge">Arc MSAGL dont l'on veut changer le style</param>
-        public void styleEdge(Edge edge)
+        public void styleEdge(Edge edge, bool edge_name)
         {
             defaultStyleEdge(edge);
 
-            styleEdgeClassic(edge);
+            styleEdgeClassic(edge, edge_name);
         }
 
         /// <summary>
@@ -56,16 +56,16 @@ namespace VisualisationHeuristique.Tools
         /// Style classique pour les arcs du graphe
         /// </summary>
         /// <param name="edge">Arc MSAGL dont l'on veut changer le style</param>
-        protected virtual void styleEdgeClassic(Edge edge)
+        /// <param name="edge_name">Boolean qui indique si on doit afficher le nom de l'arc</param>
+        protected virtual void styleEdgeClassic(Edge edge, bool edge_name)
         {
             if (this.inSelectedPath())
             {
                 edge.Attr.LineWidth = 1.5;
                 edge.Attr.Color = Color.Red;
-                //edge.LabelText = (dest.heuristic_value - source.heuristic_value).ToString();
             }
 
-            if (this.actuallyTaken())
+            if (this.actuallyTaken() && edge_name)
             {
                 edge.LabelText = this.name;
             }

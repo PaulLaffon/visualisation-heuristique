@@ -1,6 +1,7 @@
 ﻿using Microsoft.Msagl.WpfGraphControl;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Media;
 using VisualisationHeuristique.Tools;
 
 namespace VisualisationHeuristique
@@ -69,6 +70,8 @@ namespace VisualisationHeuristique
 
             secondGraph.Visibility = Visibility.Collapsed;
 
+            selectedMainFile.Background = Brushes.Black;
+
             // Calculer le layout du graphe au lancement de l'application
             calculer_Clicked(null, null);
         }
@@ -90,7 +93,10 @@ namespace VisualisationHeuristique
             // Si on ne veut afficher que un seul graphe 
             if ((bool)oneGraph.IsChecked)
             {
-                viewer1.Graph = graphe1.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
+                viewer1.Graph = graphe1.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, 
+                                                       (bool)mainGraphGroupNodes.IsChecked, 
+                                                       (bool)mainGraphEdgeName.IsChecked,
+                                                       mainGraphGroupLevel.Value);
             }
             else if((bool)twoInOne.IsChecked) // Si on veut afficher deux graphe dans la même vue
             {
@@ -98,15 +104,25 @@ namespace VisualisationHeuristique
 
                 CustomGraphMerged merged_graph = new CustomGraphMerged(graphe1, graphe2);
 
-                viewer1.Graph = merged_graph.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
+                viewer1.Graph = merged_graph.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, 
+                                                            (bool)mainGraphGroupNodes.IsChecked,
+                                                            (bool)mainGraphEdgeName.IsChecked, 
+                                                            mainGraphGroupLevel.Value);
             }
             else if((bool)twoGraphs.IsChecked) // Si on veut afficher 2 graphes cote à cote
             {
                 SecondaryVisible = true;
                 CustomGraph graphe2 = JsonGraphProvider.loadGraphFromFile(folderName + "\\" + selectedSecondaryFile.SelectedItem.ToString());
 
-                viewer1.Graph = graphe1.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, (bool)mainGraphGroupNodes.IsChecked);
-                viewer2.Graph = graphe2.getVisualGraph((bool)secondGraphVisitedNodes.IsChecked, (bool)secondGraphGroupNodes.IsChecked);
+                viewer1.Graph = graphe1.getVisualGraph((bool)mainGraphVisitedNodes.IsChecked, 
+                                                       (bool)mainGraphGroupNodes.IsChecked,
+                                                       (bool)mainGraphEdgeName.IsChecked,
+                                                       mainGraphGroupLevel.Value);
+
+                viewer2.Graph = graphe2.getVisualGraph((bool)secondGraphVisitedNodes.IsChecked, 
+                                                       (bool)secondGraphGroupNodes.IsChecked,
+                                                       (bool)secondGraphEdgeName.IsChecked,
+                                                       secondGraphhGroupLevel.Value);
             }
         }
 
@@ -116,18 +132,40 @@ namespace VisualisationHeuristique
         {
             secondGraph.Visibility = Visibility.Visible;
             radioSecond.Visibility = Visibility.Visible;
+            principal.Foreground = Brushes.Black;
+            secondaire.Foreground = Brushes.Black;
         }
 
         private void oneGraph_Checked(object sender, RoutedEventArgs e)
         {
             secondGraph.Visibility = Visibility.Collapsed;
             radioSecond.Visibility = Visibility.Collapsed;
+            principal.Foreground = Brushes.Black;
+            secondaire.Foreground = Brushes.Black;
         }
 
         private void twoInOne_Checked(object sender, RoutedEventArgs e)
         {
             secondGraph.Visibility = Visibility.Visible;
             radioSecond.Visibility = Visibility.Collapsed;
+            principal.Foreground = Brushes.Green;
+            secondaire.Foreground = Brushes.Blue;
+        }
+
+        private void mainGraphGroup_checked(object sender, RoutedEventArgs e)
+        {
+            if((bool)mainGraphGroupNodes.IsChecked)
+                mainGraphGroupSelector.Visibility = Visibility.Visible;
+            else
+                mainGraphGroupSelector.Visibility = Visibility.Collapsed;
+        }
+
+        private void secondGraphGroup_checked(object sender, RoutedEventArgs e)
+        {
+            if ((bool)secondGraphGroupNodes.IsChecked)
+                secondGraphGroupSelector.Visibility = Visibility.Visible;
+            else
+                secondGraphGroupSelector.Visibility = Visibility.Collapsed;
         }
     }
 }
